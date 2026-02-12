@@ -1,0 +1,1226 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selector de Alimentos Avanzado</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    #root-container {
+      height: 100%;
+    }
+
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .slide-in-down {
+      animation: slideInDown 0.6s ease-out forwards;
+    }
+
+    .slide-in-up {
+      animation: slideInUp 0.6s ease-out forwards;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    .scale-in {
+      animation: scaleIn 0.4s ease-out forwards;
+    }
+
+    .shake {
+      animation: shake 0.3s ease-out;
+    }
+
+    .stagger-1 { animation-delay: 0.05s; }
+    .stagger-2 { animation-delay: 0.1s; }
+    .stagger-3 { animation-delay: 0.15s; }
+    .stagger-4 { animation-delay: 0.2s; }
+    .stagger-5 { animation-delay: 0.25s; }
+    .stagger-6 { animation-delay: 0.3s; }
+
+    .food-card {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .food-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .food-card:active {
+      transform: translateY(-4px);
+    }
+
+    .category-tab {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .category-tab.active {
+      background-color: #0EA5E9;
+      color: white;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+    }
+
+    .search-input {
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      transform: scale(1.02);
+      box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2);
+    }
+
+    .modal-overlay {
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .modal-content {
+      animation: scaleIn 0.3s ease-out;
+    }
+
+    .color-badge {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .badge-green { background-color: #10B981; }
+    .badge-yellow { background-color: #FBBF24; }
+    .badge-red { background-color: #EF4444; }
+
+    .border-green { border-left: 4px solid #10B981; }
+    .border-yellow { border-left: 4px solid #FBBF24; }
+    .border-red { border-left: 4px solid #EF4444; }
+
+    .bg-green-light { background-color: rgba(16, 185, 129, 0.1); }
+    .bg-yellow-light { background-color: rgba(251, 191, 36, 0.1); }
+    .bg-red-light { background-color: rgba(239, 68, 68, 0.1); }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid #E5E7EB;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+      border-color: #0EA5E9;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      color: #1F2937;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .btn-transition {
+      transition: all 0.3s ease;
+    }
+
+    .btn-transition:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-transition:active {
+      transform: translateY(0);
+    }
+
+    .greeting-card {
+      background: linear-gradient(135deg, #0EA5E9 0%, #06B6D4 100%);
+    }
+
+    .selected-item {
+      animation: slideInUp 0.3s ease-out;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .form-section {
+      background: linear-gradient(135deg, #F0F9FF 0%, #ECFDF5 100%);
+      border: 2px solid #0EA5E9;
+    }
+
+    .custom-checkbox {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #0EA5E9;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .custom-checkbox:checked {
+      background-color: #0EA5E9;
+      border-color: #0EA5E9;
+    }
+
+    .custom-checkbox:checked::after {
+      content: '✓';
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      font-weight: bold;
+    }
+
+    .collapsible-form {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+
+    .collapsible-form.open {
+      max-height: 2000px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-auto-fit {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full overflow-auto bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 min-h-full">
+  <div id="root-container" class="w-full max-w-7xl mx-auto px-4 py-8 h-full overflow-y-auto"><!-- Saludo personalizado -->
+   <div id="greeting-card" class="greeting-card text-white rounded-2xl p-6 mb-8 shadow-lg slide-in-down flex flex-col md:flex-row items-center justify-between gap-4">
+
+  <!-- Mitad izquierda: saludo -->
+  <div class="flex-1">
+    <p class="text-lg font-semibold">
+      <span id="greeting-text">👋 Cargando...</span>
+    </p>
+    <p id="greeting-subtitle" class="text-blue-100 mt-2 text-sm">
+      Objetivo: Selecciona alimentos que se alineen con tu meta
+    </p>
+  </div>
+
+  <!-- Mitad derecha: barra de recetas -->
+  <a href="recetas.html" class="flex-1 w-full md:w-auto">
+    <div class="flex flex-col gap-4 items-center mt-6">
+  <a href="receta1.html"
+     class="px-6 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 transition-all shadow-md w-full max-w-xs text-center">
+    🍽️ Recetas para mantener peso
+  </a>
+
+  <a href="receta2.html"
+     class="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all shadow-md w-full max-w-xs text-center">
+    🔥 Recetas para perder peso
+  </a>
+
+  <a href="receta3.html"
+     class="px-6 py-3 bg-purple-500 text-white rounded-xl font-bold hover:bg-purple-600 transition-all shadow-md w-full max-w-xs text-center">
+    💪 Recetas para ganar músculo
+  </a>
+</div>
+
+  </a>
+
+</div>
+<!-- Header -->
+   <header class="text-center mb-10 slide-in-down">
+    <h1 id="main-title" class="text-4xl md:text-5xl font-extrabold text-gray-800 mb-2">Selecciona un alimento</h1>
+    <p id="subtitle" class="text-gray-500 text-lg">Elige el alimento que deseas analizar nutricionalmente</p>
+   </header><!-- SECCIÓN: AGREGAR ALIMENTO PERSONALIZADO -->
+   <div class="bg-white rounded-3xl shadow-lg mb-8 overflow-hidden slide-in-up stagger-1"><button id="toggle-form-btn" class="w-full px-8 py-6 bg-gradient-to-r from-purple-400 to-pink-500 text-white font-bold text-lg hover:shadow-lg transition-all flex items-center justify-between group"> <span class="flex items-center gap-3"> <span class="text-2xl group-hover:scale-110 transition-transform">➕</span> <span id="form-title">Agregar alimento personalizado</span> </span> <span id="toggle-icon" class="text-2xl transform transition-transform">▼</span> </button>
+    <div id="custom-food-form" class="collapsible-form">
+     <div class="p-8 bg-gradient-to-br from-purple-50 to-pink-50 border-t-2 border-purple-200">
+      <div class="grid md:grid-cols-2 gap-6"><!-- Nombre -->
+       <div class="form-group"><label class="form-label">Nombre del alimento</label> <input type="text" id="custom-name" class="form-input" placeholder="Ej: Quinoa roja">
+       </div><!-- Categoría -->
+       <div class="form-group"><label class="form-label">Categoría</label> <select id="custom-category" class="form-input"> <option value="">Selecciona una categoría</option> <option value="frutas">Frutas</option> <option value="verduras">Verduras</option> <option value="proteinas">Proteínas</option> <option value="lacteos">Lácteos</option> <option value="cereales">Cereales</option> <option value="otro">Otro</option> </select>
+       </div><!-- Emoji -->
+       <div class="form-group"><label class="form-label">Emoji o icono (opcional)</label> <input type="text" id="custom-emoji" class="form-input" placeholder="Ej: 🍎" maxlength="2">
+       </div><!-- Calorías -->
+       <div class="form-group"><label class="form-label">Calorías (por 100g)</label> <input type="number" id="custom-calories" class="form-input" placeholder="0" min="0" step="0.1">
+       </div><!-- Proteína -->
+       <div class="form-group"><label class="form-label">Proteína (g)</label> <input type="number" id="custom-protein" class="form-input" placeholder="0" min="0" step="0.1">
+       </div><!-- Carbohidratos -->
+       <div class="form-group"><label class="form-label">Carbohidratos (g)</label> <input type="number" id="custom-carbs" class="form-input" placeholder="0" min="0" step="0.1">
+       </div><!-- Grasas -->
+       <div class="form-group"><label class="form-label">Grasas (g)</label> <input type="number" id="custom-fat" class="form-input" placeholder="0" min="0" step="0.1">
+       </div><!-- Fibra -->
+       <div class="form-group"><label class="form-label">Fibra (g)</label> <input type="number" id="custom-fiber" class="form-input" placeholder="0" min="0" step="0.1">
+       </div><!-- Azúcares -->
+       <div class="form-group"><label class="form-label">Azúcares (g)</label> <input type="number" id="custom-sugar" class="form-input" placeholder="0" min="0" step="0.1">
+       </div><!-- Vitamina -->
+       <div class="form-group"><label class="form-label">Vitamina o mineral principal</label> <input type="text" id="custom-vitamin" class="form-input" placeholder="Ej: Vitamina C">
+       </div><!-- Beneficio -->
+       <div class="form-group md:col-span-2"><label class="form-label">Beneficio nutricional</label> <textarea id="custom-benefit" class="form-input" placeholder="Describe los beneficios nutricionales..." rows="2"></textarea>
+       </div>
+      </div><!-- Botones del formulario -->
+      <div class="flex gap-3 mt-6"><button id="btn-save-custom" class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-400 to-pink-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all btn-transition"> ✓ Guardar alimento </button> <button id="btn-reset-form" class="flex-1 px-6 py-3 bg-white border-2 border-gray-300 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all btn-transition"> Limpiar </button>
+      </div>
+     </div>
+    </div>
+   </div><!-- Buscador -->
+   <div class="mb-8 slide-in-up stagger-2">
+    <div class="relative"><span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-2xl">🔍</span> <input type="text" id="search-input" placeholder="Busca por nombre de alimento..." class="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-gray-200 search-input focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-100 text-gray-800 bg-white shadow-md">
+    </div>
+   </div><!-- Filtros por categoría -->
+   <div class="mb-8 slide-in-up stagger-3">
+    <p class="text-sm font-semibold text-gray-700 mb-3">Filtrar por categoría:</p>
+    <div class="flex flex-wrap gap-2" id="category-filters"><!-- Se genera dinámicamente -->
+    </div>
+   </div><!-- Grid de alimentos -->
+   <div class="mb-12">
+    <div id="foods-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 grid-auto-fit"><!-- Se genera dinámicamente -->
+    </div>
+    <div id="no-results" class="hidden empty-state slide-in-up"><span class="text-6xl mb-4 block">🔍</span>
+     <p class="text-gray-500 text-lg mb-2">No encontramos alimentos con esos criterios</p>
+     <p class="text-gray-400 text-sm">Intenta con otras palabras o crea un alimento personalizado</p>
+    </div>
+   </div><!-- Sección de alimentos seleccionados -->
+   <div class="bg-white rounded-3xl p-8 shadow-lg mb-12 slide-in-up stagger-4">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span>📋</span> Alimentos seleccionados</h2>
+    <div id="selected-foods-list" class="space-y-3 mb-6">
+     <p class="text-gray-500 text-center py-8">Aún no has seleccionado ningún alimento</p>
+    </div>
+    <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+     <p class="text-xs text-blue-800 flex gap-2"><span>ℹ️</span> <span>Los valores nutricionales son estimados por porción estándar (100g).</span></p>
+    </div><!-- Resumen de calorías -->
+    <div id="calories-summary" class="hidden mt-6 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border-l-4 border-blue-400">
+     <div class="flex justify-between items-center">
+      <div>
+       <p class="text-gray-600 text-sm mb-1">Total de calorías seleccionadas</p>
+       <p id="total-calories" class="text-3xl font-bold text-blue-600">0</p>
+      </div><span class="text-4xl">🔥</span>
+     </div>
+    </div>
+   </div><!-- Botones de navegación -->
+   <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12 slide-in-up stagger-5"><button id="btn-back" class="flex-1 sm:flex-none px-8 py-4 bg-white border-2 border-gray-300 rounded-2xl font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 btn-transition active:scale-95"> ← Regresar </button> <button id="btn-continue" class="flex-1 sm:flex-none px-8 py-4 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-2xl font-bold text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-transition active:scale-95"> Continuar → </button>
+   </div>
+  </div><!-- MODAL DE DETALLE DE ALIMENTO -->
+  <div id="food-modal" class="hidden fixed inset-0 bg-black/50 modal-overlay z-50 flex items-center justify-center p-4">
+   <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto modal-content shadow-2xl"><!-- Header del modal -->
+    <div class="bg-gradient-to-r from-blue-400 to-cyan-500 p-8 text-white sticky top-0 z-10">
+     <div class="flex items-center justify-between mb-4"><span id="modal-food-emoji" class="text-5xl">🍎</span> <button id="btn-close-modal" class="text-2xl hover:bg-white/20 rounded-full w-10 h-10 flex items-center justify-center transition-all"> �� </button>
+     </div>
+     <h2 id="modal-food-name" class="text-3xl font-bold mb-2">Nombre del alimento</h2>
+     <div class="flex gap-2"><span id="modal-food-category" class="bg-white/30 px-3 py-1 rounded-full text-sm font-semibold">Categoría</span> <span id="modal-food-recommendation" class="bg-white/30 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1"> <span id="modal-recommendation-badge" class="color-badge"></span> <span id="modal-recommendation-text">Recomendado</span> </span>
+     </div>
+    </div><!-- Contenido del modal -->
+    <div class="p-8 space-y-8"><!-- Información nutricional por 100g -->
+     <div>
+      <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span>📊</span> Información nutricional (por 100g)</h3>
+      <div class="grid grid-cols-2 gap-4">
+       <div class="bg-gradient-to-br from-red-50 to-rose-50 rounded-xl p-4 border-l-4 border-red-400">
+        <p class="text-gray-600 text-sm mb-1">Calorías</p>
+        <p class="text-2xl font-bold text-red-600" id="modal-calories">0</p>
+        <p class="text-xs text-gray-500 mt-1">kcal</p>
+       </div>
+       <div class="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-4 border-l-4 border-yellow-400">
+        <p class="text-gray-600 text-sm mb-1">Proteína</p>
+        <p class="text-2xl font-bold text-yellow-600" id="modal-protein">0</p>
+        <p class="text-xs text-gray-500 mt-1">g</p>
+       </div>
+       <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-l-4 border-green-400">
+        <p class="text-gray-600 text-sm mb-1">Carbohidratos</p>
+        <p class="text-2xl font-bold text-green-600" id="modal-carbs">0</p>
+        <p class="text-xs text-gray-500 mt-1">g</p>
+       </div>
+       <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 border-l-4 border-blue-400">
+        <p class="text-gray-600 text-sm mb-1">Grasas</p>
+        <p class="text-2xl font-bold text-blue-600" id="modal-fat">0</p>
+        <p class="text-xs text-gray-500 mt-1">g</p>
+       </div>
+       <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-l-4 border-purple-400">
+        <p class="text-gray-600 text-sm mb-1">Fibra</p>
+        <p class="text-2xl font-bold text-purple-600" id="modal-fiber">0</p>
+        <p class="text-xs text-gray-500 mt-1">g</p>
+       </div>
+       <div class="bg-gradient-to-br from-red-50 to-pink-50 rounded-xl p-4 border-l-4 border-red-300">
+        <p class="text-gray-600 text-sm mb-1">Azúcares</p>
+        <p class="text-2xl font-bold text-red-500" id="modal-sugar">0</p>
+        <p class="text-xs text-gray-500 mt-1">g</p>
+       </div>
+      </div>
+     </div><!-- Beneficios -->
+     <div>
+      <h3 class="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2"><span>💡</span> Beneficios nutricionales</h3>
+      <div class="bg-blue-50 rounded-xl p-4 border-l-4 border-blue-400">
+       <p id="modal-benefit" class="text-gray-700 text-sm">Beneficio nutricional...</p>
+      </div>
+      <div class="bg-cyan-50 rounded-xl p-4 border-l-4 border-cyan-400 mt-3">
+       <p class="text-sm"><span class="font-semibold text-gray-700">Vitamina/Mineral principal:</span> <span id="modal-vitamin" class="text-gray-600 ml-2">—</span></p>
+      </div>
+     </div><!-- Selector de cantidad -->
+     <div>
+      <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><span>⚖️</span> Selecciona la cantidad</h3><!-- Botones predefinidos -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4" id="quantity-presets"><!-- Se genera dinámicamente -->
+      </div><!-- Entrada manual -->
+      <div class="flex gap-2"><input type="number" id="custom-quantity" placeholder="Otra cantidad (g)" min="10" max="1000" step="10" class="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-100 text-gray-800"> <button id="btn-custom-quantity" class="px-4 py-3 bg-blue-400 text-white font-semibold rounded-xl hover:bg-blue-500 transition-all btn-transition"> ✓ </button>
+      </div>
+     </div><!-- Resumen de cálculo -->
+     <div id="quantity-summary" class="hidden bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border-l-4 border-blue-400">
+      <div class="grid grid-cols-2 gap-4 text-sm">
+       <div>
+        <p class="text-gray-600 mb-1">Cantidad seleccionada</p>
+        <p id="summary-quantity" class="text-xl font-bold text-gray-800">0g</p>
+       </div>
+       <div>
+        <p class="text-gray-600 mb-1">Calorías totales</p>
+        <p id="summary-calories" class="text-xl font-bold text-blue-600">0 kcal</p>
+       </div>
+      </div>
+     </div><!-- Botones de acción del modal -->
+     <div class="flex gap-3 pt-4"><button id="btn-cancel-modal" class="flex-1 px-6 py-3 bg-white border-2 border-gray-300 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition-all btn-transition"> Cancelar </button> <button id="btn-add-food" class="flex-1 px-6 py-3 bg-gradient-to-r from-green-400 to-emerald-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all btn-transition disabled:opacity-50"> Añadir a selección </button>
+     </div>
+    </div>
+   </div>
+  </div><!-- Toast notification -->
+  <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50"><span id="toast-message">Mensaje</span>
+  </div>
+  <script>
+    // ==========================================
+    // BASE DE DATOS EXTENDIDA DE ALIMENTOS
+    // ==========================================
+    const INITIAL_FOODS = [
+  // 🍎 FRUTAS
+  { id: 1, name: 'Manzana', icon: '🍎', category: 'frutas', calories: 52, protein: 0.3, carbs: 13.8, fat: 0.2, fiber: 2.4, sugar: 10.4, vitamin: 'Vitamina C', benefit: 'Rica en fibra y antioxidantes.', custom: false },
+  { id: 2, name: 'Plátano', icon: '🍌', category: 'frutas', calories: 89, protein: 1.1, carbs: 23, fat: 0.3, fiber: 2.6, sugar: 12, vitamin: 'Potasio', benefit: 'Ideal pre-entreno.', custom: false },
+  { id: 3, name: 'Fresas', icon: '🍓', category: 'frutas', calories: 32, protein: 0.7, carbs: 7.7, fat: 0.3, fiber: 2, sugar: 4.9, vitamin: 'Vitamina C', benefit: 'Bajas en calorías.', custom: false },
+  { id: 4, name: 'Naranja', icon: '🍊', category: 'frutas', calories: 47, protein: 0.9, carbs: 11.8, fat: 0.1, fiber: 2.4, sugar: 9.3, vitamin: 'Vitamina C', benefit: 'Refuerza defensas.', custom: false },
+  { id: 5, name: 'Uvas', icon: '🍇', category: 'frutas', calories: 69, protein: 0.7, carbs: 18.1, fat: 0.2, fiber: 0.9, sugar: 15.5, vitamin: 'Vitamina K', benefit: 'Antioxidantes.', custom: false },
+  { id: 6, name: 'Sandía', icon: '🍉', category: 'frutas', calories: 30, protein: 0.6, carbs: 8, fat: 0.2, fiber: 0.4, sugar: 6, vitamin: 'Vitamina A', benefit: 'Muy hidratante.', custom: false },
+  { id: 7, name: 'Melón', icon: '🍈', category: 'frutas', calories: 34, protein: 0.8, carbs: 8.2, fat: 0.2, fiber: 0.9, sugar: 7.9, vitamin: 'Vitamina C', benefit: 'Refrescante.', custom: false },
+  { id: 8, name: 'Piña', icon: '🍍', category: 'frutas', calories: 50, protein: 0.5, carbs: 13, fat: 0.1, fiber: 1.4, sugar: 9.9, vitamin: 'Vitamina C', benefit: 'Mejora digestión.', custom: false },
+  { id: 9, name: 'Cereza', icon: '🍒', category: 'frutas', calories: 63, protein: 1.1, carbs: 16, fat: 0.2, fiber: 2.1, sugar: 12.8, vitamin: 'Vitamina C', benefit: 'Antioxidante.', custom: false },
+  { id: 10, name: 'Pera', icon: '🍐', category: 'frutas', calories: 57, protein: 0.4, carbs: 15, fat: 0.1, fiber: 3.1, sugar: 10, vitamin: 'Vitamina C', benefit: 'Alta en fibra.', custom: false },
+  { id: 11, name: 'Durazno', icon: '🍑', category: 'frutas', calories: 39, protein: 0.9, carbs: 9.5, fat: 0.3, fiber: 1.5, sugar: 8.4, vitamin: 'Vitamina A', benefit: 'Dulce natural.', custom: false },
+  { id: 12, name: 'Kiwi', icon: '🥝', category: 'frutas', calories: 61, protein: 1.1, carbs: 15, fat: 0.5, fiber: 3, sugar: 9, vitamin: 'Vitamina C', benefit: 'Altísima en C.', custom: false },
+  { id: 13, name: 'Mango', icon: '🥭', category: 'frutas', calories: 60, protein: 0.8, carbs: 15, fat: 0.4, fiber: 1.6, sugar: 13.7, vitamin: 'Vitamina A', benefit: 'Energético.', custom: false },
+  { id: 14, name: 'Coco', icon: '🥥', category: 'frutas', calories: 354, protein: 3.3, carbs: 15, fat: 33, fiber: 9, sugar: 6, vitamin: 'Manganeso', benefit: 'Grasas saludables.', custom: false },
+  { id: 15, name: 'Papaya', icon: '🍈', category: 'frutas', calories: 43, protein: 0.5, carbs: 11, fat: 0.3, fiber: 1.7, sugar: 7.8, vitamin: 'Vitamina C', benefit: 'Digestiva.', custom: false },
+  { id: 16, name: 'Guayaba', icon: '🍐', category: 'frutas', calories: 68, protein: 2.6, carbs: 14, fat: 1, fiber: 5.4, sugar: 9, vitamin: 'Vitamina C', benefit: 'Muy nutritiva.', custom: false },
+  { id: 17, name: 'Granada', icon: '🍎', category: 'frutas', calories: 83, protein: 1.7, carbs: 19, fat: 1.2, fiber: 4, sugar: 14, vitamin: 'Vitamina C', benefit: 'Antioxidante.', custom: false },
+  { id: 18, name: 'Higos', icon: '🍈', category: 'frutas', calories: 74, protein: 0.8, carbs: 19, fat: 0.3, fiber: 2.9, sugar: 16, vitamin: 'Potasio', benefit: 'Energía natural.', custom: false },
+  { id: 19, name: 'Mandarina', icon: '🍊', category: 'frutas', calories: 53, protein: 0.8, carbs: 13, fat: 0.3, fiber: 1.8, sugar: 10.6, vitamin: 'Vitamina C', benefit: 'Refrescante.', custom: false },
+  { id: 20, name: 'Maracuyá', icon: '🍈', category: 'frutas', calories: 97, protein: 2.2, carbs: 23, fat: 0.7, fiber: 10.4, sugar: 11, vitamin: 'Vitamina A', benefit: 'Muy fibrosa.', custom: false },
+
+  // 🥦 VERDURAS
+  { id: 21, name: 'Brócoli', icon: '🥦', category: 'verduras', calories: 34, protein: 2.8, carbs: 7, fat: 0.4, fiber: 2.4, sugar: 1.7, vitamin: 'Vitamina K', benefit: 'Antioxidante.', custom: false },
+  { id: 22, name: 'Espinaca', icon: '🥬', category: 'verduras', calories: 23, protein: 2.7, carbs: 3.6, fat: 0.4, fiber: 2.2, sugar: 0.4, vitamin: 'Hierro', benefit: 'Muy nutritiva.', custom: false },
+  { id: 23, name: 'Zanahoria', icon: '🥕', category: 'verduras', calories: 41, protein: 0.9, carbs: 10, fat: 0.2, fiber: 2.8, sugar: 4.7, vitamin: 'Vitamina A', benefit: 'Buena para la vista.', custom: false },
+  { id: 24, name: 'Lechuga', icon: '🥒', category: 'verduras', calories: 15, protein: 1.2, carbs: 2.9, fat: 0.2, fiber: 1.3, sugar: 0.6, vitamin: 'Vitamina K', benefit: 'Muy ligera.', custom: false },
+  { id: 25, name: 'Tomate', icon: '🍅', category: 'verduras', calories: 18, protein: 0.9, carbs: 3.9, fat: 0.2, fiber: 1.2, sugar: 2.6, vitamin: 'Licopeno', benefit: 'Antioxidante.', custom: false },
+  { id: 26, name: 'Pepino', icon: '🥒', category: 'verduras', calories: 16, protein: 0.7, carbs: 3.6, fat: 0.1, fiber: 0.5, sugar: 1.7, vitamin: 'Vitamina K', benefit: 'Muy hidratante.', custom: false },
+  { id: 27, name: 'Champiñones', icon: '🍄', category: 'verduras', calories: 22, protein: 3.3, carbs: 3.3, fat: 0.3, fiber: 1, sugar: 0.1, vitamin: 'Vitamina D', benefit: 'Bajos en calorías.', custom: false },
+  { id: 28, name: 'Pimiento rojo', icon: '🌶️', category: 'verduras', calories: 31, protein: 1, carbs: 6, fat: 0.3, fiber: 2, sugar: 4.2, vitamin: 'Vitamina C', benefit: 'Muy antioxidante.', custom: false },
+  { id: 29, name: 'Papa', icon: '🥔', category: 'verduras', calories: 77, protein: 2, carbs: 17, fat: 0.1, fiber: 2.2, sugar: 0.8, vitamin: 'Potasio', benefit: 'Muy saciante.', custom: false },
+  { id: 30, name: 'Batata', icon: '🍠', category: 'verduras', calories: 86, protein: 1.6, carbs: 20, fat: 0.1, fiber: 3, sugar: 4.2, vitamin: 'Vitamina A', benefit: 'Antioxidante.', custom: false },
+  { id: 31, name: 'Cebolla', icon: '🧅', category: 'verduras', calories: 40, protein: 1.1, carbs: 9.3, fat: 0.1, fiber: 1.7, sugar: 4.2, vitamin: 'Vitamina C', benefit: 'Antiinflamatoria.', custom: false },
+  { id: 32, name: 'Ajo', icon: '🧄', category: 'verduras', calories: 149, protein: 6.4, carbs: 33, fat: 0.5, fiber: 2.1, sugar: 1, vitamin: 'Vitamina C', benefit: 'Refuerza defensas.', custom: false },
+  { id: 33, name: 'Calabaza', icon: '🎃', category: 'verduras', calories: 26, protein: 1, carbs: 6.5, fat: 0.1, fiber: 0.5, sugar: 2.8, vitamin: 'Vitamina A', benefit: 'Muy ligera.', custom: false },
+  { id: 34, name: 'Berenjena', icon: '🍆', category: 'verduras', calories: 25, protein: 1, carbs: 6, fat: 0.2, fiber: 3, sugar: 3.5, vitamin: 'Vitamina B1', benefit: 'Baja en calorías.', custom: false },
+  { id: 35, name: 'Coliflor', icon: '🥦', category: 'verduras', calories: 25, protein: 1.9, carbs: 5, fat: 0.3, fiber: 2, sugar: 1.9, vitamin: 'Vitamina C', benefit: 'Ligera y versátil.', custom: false },
+  { id: 36, name: 'Repollo', icon: '🥬', category: 'verduras', calories: 25, protein: 1.3, carbs: 6, fat: 0.1, fiber: 2.5, sugar: 3.2, vitamin: 'Vitamina K', benefit: 'Bueno para digestión.', custom: false },
+  { id: 37, name: 'Espárragos', icon: '🥦', category: 'verduras', calories: 20, protein: 2.2, carbs: 3.9, fat: 0.1, fiber: 2.1, sugar: 1.9, vitamin: 'Vitamina K', benefit: 'Diuréticos.', custom: false },
+  { id: 38, name: 'Arvejas', icon: '🟢', category: 'verduras', calories: 81, protein: 5.4, carbs: 14, fat: 0.4, fiber: 5.1, sugar: 5.7, vitamin: 'Vitamina C', benefit: 'Ricas en proteína vegetal.', custom: false },
+  { id: 39, name: 'Elote', icon: '🌽', category: 'verduras', calories: 96, protein: 3.4, carbs: 21, fat: 1.5, fiber: 2.4, sugar: 4.5, vitamin: 'Vitamina B1', benefit: 'Energético.', custom: false },
+  { id: 40, name: 'Rábano', icon: '🥕', category: 'verduras', calories: 16, protein: 0.7, carbs: 3.4, fat: 0.1, fiber: 1.6, sugar: 1.9, vitamin: 'Vitamina C', benefit: 'Digestivo.', custom: false },
+
+  // 🍗 PROTEÍNAS
+  { id: 41, name: 'Pollo pechuga', icon: '🍗', category: 'proteinas', calories: 165, protein: 31, carbs: 0, fat: 3.6, fiber: 0, sugar: 0, vitamin: 'B3', benefit: 'Proteína magra.', custom: false },
+  { id: 42, name: 'Huevo', icon: '🥚', category: 'proteinas', calories: 155, protein: 13, carbs: 1.1, fat: 11, fiber: 0, sugar: 1.1, vitamin: 'Colina', benefit: 'Proteína completa.', custom: false },
+  { id: 43, name: 'Salmón', icon: '🐟', category: 'proteinas', calories: 206, protein: 22, carbs: 0, fat: 13, fiber: 0, sugar: 0, vitamin: 'Omega-3', benefit: 'Grasas saludables.', custom: false },
+  { id: 44, name: 'Atún', icon: '🐟', category: 'proteinas', calories: 132, protein: 29, carbs: 0, fat: 0.8, fiber: 0, sugar: 0, vitamin: 'Selenio', benefit: 'Proteína magra.', custom: false },
+  { id: 45, name: 'Carne magra', icon: '🥩', category: 'proteinas', calories: 180, protein: 26, carbs: 0, fat: 8, fiber: 0, sugar: 0, vitamin: 'Hierro', benefit: 'Ideal para atletas.', custom: false },
+  { id: 46, name: 'Pechuga de pavo', icon: '🦃', category: 'proteinas', calories: 135, protein: 29, carbs: 0, fat: 1.5, fiber: 0, sugar: 0, vitamin: 'Selenio', benefit: 'Ultra magra.', custom: false },
+  { id: 47, name: 'Cerdo magro', icon: '🐖', category: 'proteinas', calories: 242, protein: 27, carbs: 0, fat: 14, fiber: 0, sugar: 0, vitamin: 'Tiamina', benefit: 'Buena fuente proteica.', custom: false },
+  { id: 48, name: 'Pescado blanco', icon: '🐠', category: 'proteinas', calories: 96, protein: 20, carbs: 0, fat: 1.7, fiber: 0, sugar: 0, vitamin: 'B12', benefit: 'Ligero y digestivo.', custom: false },
+  { id: 49, name: 'Camarones', icon: '🦐', category: 'proteinas', calories: 99, protein: 24, carbs: 0.2, fat: 0.3, fiber: 0, sugar: 0, vitamin: 'Yodo', benefit: 'Muy bajos en grasa.', custom: false },
+  { id: 50, name: 'Pulpo', icon: '🐙', category: 'proteinas', calories: 164, protein: 29, carbs: 4.4, fat: 2.1, fiber: 0, sugar: 0, vitamin: 'B12', benefit: 'Proteína marina.', custom: false },
+  { id: 51, name: 'Tofu', icon: '🧊', category: 'proteinas', calories: 76, protein: 8, carbs: 1.9, fat: 4.8, fiber: 0.3, sugar: 0.3, vitamin: 'Calcio', benefit: 'Proteína vegetal.', custom: false },
+  { id: 52, name: 'Tempeh', icon: '🫘', category: 'proteinas', calories: 193, protein: 20, carbs: 9, fat: 11, fiber: 7, sugar: 1, vitamin: 'Hierro', benefit: 'Muy nutritivo.', custom: false },
+  { id: 53, name: 'Lentejas cocidas', icon: '🍲', category: 'proteinas', calories: 116, protein: 9, carbs: 20, fat: 0.4, fiber: 8, sugar: 0, vitamin: 'Hierro', benefit: 'Proteína vegetal.', custom: false },
+  { id: 54, name: 'Garbanzos cocidos', icon: '🫘', category: 'proteinas', calories: 134, protein: 8.9, carbs: 22.5, fat: 2.1, fiber: 6.4, sugar: 0, vitamin: 'Ácido fólico', benefit: 'Muy saciantes.', custom: false },
+  { id: 55, name: 'Frijoles negros', icon: '🫘', category: 'proteinas', calories: 132, protein: 8.9, carbs: 23.7, fat: 0.5, fiber: 8.7, sugar: 0.3, vitamin: 'Hierro', benefit: 'Ricos en fibra.', custom: false },
+  { id: 56, name: 'Huevas', icon: '🥚', category: 'proteinas', calories: 264, protein: 25, carbs: 4, fat: 18, fiber: 0, sugar: 0, vitamin: 'Omega-3', benefit: 'Alta proteína.', custom: false },
+  { id: 57, name: 'Chorizo', icon: '🌭', category: 'proteinas', calories: 455, protein: 24, carbs: 2, fat: 38, fiber: 0, sugar: 1, vitamin: 'Hierro', benefit: 'Alto en grasa.', custom: false },
+  { id: 58, name: 'Jamón', icon: '🥓', category: 'proteinas', calories: 145, protein: 21, carbs: 1.5, fat: 5, fiber: 0, sugar: 1.5, vitamin: 'Sodio', benefit: 'Proteína animal.', custom: false },
+  { id: 59, name: 'Salchicha', icon: '🌭', category: 'proteinas', calories: 301, protein: 12, carbs: 2, fat: 27, fiber: 0, sugar: 1, vitamin: 'Sodio', benefit: 'Consumo ocasional.', custom: false },
+  { id: 60, name: 'Batido de proteínas', icon: '🥤', category: 'proteinas', calories: 120, protein: 24, carbs: 5, fat: 1.5, fiber: 1, sugar: 3, vitamin: 'Aminoácidos', benefit: 'Recuperación muscular.', custom: false },
+
+  // 🥛 LÁCTEOS
+  { id: 61, name: 'Leche entera', icon: '🥛', category: 'lacteos', calories: 61, protein: 3.2, carbs: 4.8, fat: 3.3, fiber: 0, sugar: 4.8, vitamin: 'Calcio', benefit: 'Huesos fuertes.', custom: false },
+  { id: 62, name: 'Leche desnatada', icon: '🥛', category: 'lacteos', calories: 35, protein: 3.4, carbs: 4.8, fat: 0.1, fiber: 0, sugar: 4.8, vitamin: 'Calcio', benefit: 'Baja en grasa.', custom: false },
+  { id: 63, name: 'Yogur natural', icon: '🥣', category: 'lacteos', calories: 59, protein: 10, carbs: 3.6, fat: 0.4, fiber: 0, sugar: 3.2, vitamin: 'Probióticos', benefit: 'Mejora digestión.', custom: false },
+  { id: 64, name: 'Yogur griego', icon: '🥛', category: 'lacteos', calories: 59, protein: 10.2, carbs: 3.3, fat: 0.4, fiber: 0, sugar: 2.3, vitamin: 'Probióticos', benefit: 'Muy saciante.', custom: false },
+  { id: 65, name: 'Queso', icon: '🧀', category: 'lacteos', calories: 402, protein: 25, carbs: 1.3, fat: 33, fiber: 0, sugar: 0.5, vitamin: 'Calcio', benefit: 'Huesos fuertes.', custom: false },
+  { id: 66, name: 'Queso fresco', icon: '🧀', category: 'lacteos', calories: 264, protein: 14, carbs: 3, fat: 21, fiber: 0, sugar: 1, vitamin: 'Calcio', benefit: 'Menos grasa.', custom: false },
+  { id: 67, name: 'Queso mozzarella', icon: '🧀', category: 'lacteos', calories: 280, protein: 28, carbs: 3, fat: 17, fiber: 0, sugar: 1, vitamin: 'Calcio', benefit: 'Buena proteína.', custom: false },
+  { id: 68, name: 'Mantequilla', icon: '🧈', category: 'lacteos', calories: 717, protein: 0.9, carbs: 0.1, fat: 81, fiber: 0, sugar: 0.1, vitamin: 'Vitamina A', benefit: 'Grasa concentrada.', custom: false },
+  { id: 69, name: 'Crema', icon: '🥛', category: 'lacteos', calories: 340, protein: 2, carbs: 3, fat: 36, fiber: 0, sugar: 3, vitamin: 'Vitamina A', benefit: 'Alta en grasa.', custom: false },
+  { id: 70, name: 'Helado', icon: '🍨', category: 'lacteos', calories: 207, protein: 3.5, carbs: 24, fat: 11, fiber: 0.5, sugar: 21, vitamin: 'Calcio', benefit: 'Postre ocasional.', custom: false },
+
+  // 🌾 CEREALES
+  { id: 71, name: 'Arroz blanco', icon: '🍚', category: 'cereales', calories: 130, protein: 2.4, carbs: 28, fat: 0.3, fiber: 0.4, sugar: 0.1, vitamin: 'Vitamina B', benefit: 'Energía rápida.', custom: false },
+  { id: 72, name: 'Arroz integral', icon: '🍚', category: 'cereales', calories: 112, protein: 2.6, carbs: 24, fat: 0.9, fiber: 1.8, sugar: 0.3, vitamin: 'Vitamina B1', benefit: 'Energía sostenida.', custom: false },
+  { id: 73, name: 'Avena', icon: '🌾', category: 'cereales', calories: 389, protein: 17, carbs: 66, fat: 6.9, fiber: 10.6, sugar: 0, vitamin: 'Manganeso', benefit: 'Ideal desayuno.', custom: false },
+  { id: 74, name: 'Pan integral', icon: '🍞', category: 'cereales', calories: 247, protein: 13, carbs: 41, fat: 4.2, fiber: 7, sugar: 5, vitamin: 'Vitamina B', benefit: 'Fibra alta.', custom: false },
+  { id: 75, name: 'Pan blanco', icon: '🥖', category: 'cereales', calories: 265, protein: 9, carbs: 49, fat: 3.2, fiber: 2.7, sugar: 5, vitamin: 'Vitamina B', benefit: 'Energía rápida.', custom: false },
+  { id: 76, name: 'Pasta', icon: '🍝', category: 'cereales', calories: 131, protein: 5, carbs: 25, fat: 1.1, fiber: 1.3, sugar: 1, vitamin: 'Vitamina B', benefit: 'Fuente de energía.', custom: false },
+  { id: 77, name: 'Pasta integral', icon: '🍝', category: 'cereales', calories: 124, protein: 5, carbs: 27, fat: 1.1, fiber: 3.9, sugar: 1.5, vitamin: 'Vitamina B', benefit: 'Más fibra.', custom: false },
+  { id: 78, name: 'Quinoa', icon: '🌾', category: 'cereales', calories: 120, protein: 4.4, carbs: 21, fat: 1.9, fiber: 2.8, sugar: 1.6, vitamin: 'Magnesio', benefit: 'Proteína completa.', custom: false },
+  { id: 79, name: 'Cuscús', icon: '🍚', category: 'cereales', calories: 112, protein: 3.8, carbs: 23, fat: 0.2, fiber: 1.4, sugar: 0.1, vitamin: 'Vitamina B', benefit: 'Ligero.', custom: false },
+  { id: 80, name: 'Cereal de maíz', icon: '🥣', category: 'cereales', calories: 357, protein: 7, carbs: 84, fat: 1, fiber: 3, sugar: 8, vitamin: 'Vitamina B', benefit: 'Desayuno rápido.', custom: false },
+  { id: 81, name: 'Granola', icon: '🥣', category: 'cereales', calories: 471, protein: 10, carbs: 64, fat: 20, fiber: 7, sugar: 20, vitamin: 'Hierro', benefit: 'Energética.', custom: false },
+  { id: 82, name: 'Arepa', icon: '🫓', category: 'cereales', calories: 218, protein: 5, carbs: 45, fat: 2, fiber: 3, sugar: 1, vitamin: 'Vitamina B', benefit: 'Clásico latino.', custom: false },
+  { id: 83, name: 'Tortilla de maíz', icon: '🌮', category: 'cereales', calories: 218, protein: 5, carbs: 44, fat: 2, fiber: 6, sugar: 1, vitamin: 'Calcio', benefit: 'Base de tacos.', custom: false },
+  { id: 84, name: 'Tortilla de trigo', icon: '🌯', category: 'cereales', calories: 218, protein: 6, carbs: 35, fat: 6, fiber: 2, sugar: 2, vitamin: 'Vitamina B', benefit: 'Versátil.', custom: false },
+  { id: 85, name: 'Pan pita', icon: '🥙', category: 'cereales', calories: 275, protein: 9, carbs: 56, fat: 1.5, fiber: 2, sugar: 1, vitamin: 'Vitamina B', benefit: 'Ideal wraps.', custom: false },
+  { id: 86, name: 'Bagel', icon: '🥯', category: 'cereales', calories: 245, protein: 10, carbs: 48, fat: 1.5, fiber: 2, sugar: 6, vitamin: 'Vitamina B', benefit: 'Desayuno energético.', custom: false },
+  { id: 87, name: 'Galletas saladas', icon: '🍘', category: 'cereales', calories: 502, protein: 9, carbs: 69, fat: 22, fiber: 3, sugar: 5, vitamin: 'Sodio', benefit: 'Snack seco.', custom: false },
+  { id: 88, name: 'Pan de centeno', icon: '🍞', category: 'cereales', calories: 259, protein: 8.5, carbs: 48, fat: 3.3, fiber: 5.8, sugar: 6, vitamin: 'Magnesio', benefit: 'Muy saciante.', custom: false },
+  { id: 89, name: 'Trigo cocido', icon: '🌾', category: 'cereales', calories: 135, protein: 5, carbs: 29, fat: 0.4, fiber: 4, sugar: 0.4, vitamin: 'Vitamina B', benefit: 'Energía natural.', custom: false },
+  { id: 90, name: 'Cebada', icon: '🌾', category: 'cereales', calories: 354, protein: 12, carbs: 73, fat: 2.3, fiber: 17, sugar: 0.8, vitamin: 'Selenio', benefit: 'Alta en fibra.', custom: false },
+
+  // 🍔 OTROS / COMIDAS
+  { id: 91, name: 'Hamburguesa', icon: '🍔', category: 'otro', calories: 295, protein: 17, carbs: 24, fat: 14, fiber: 2.3, sugar: 4.5, vitamin: 'Hierro', benefit: 'Comida ocasional.', custom: false },
+  { id: 92, name: 'Pizza', icon: '🍕', category: 'otro', calories: 266, protein: 11, carbs: 33, fat: 10, fiber: 2.3, sugar: 3.6, vitamin: 'Calcio', benefit: 'Recreativa.', custom: false },
+  { id: 93, name: 'Hot dog', icon: '🌭', category: 'otro', calories: 290, protein: 11, carbs: 24, fat: 18, fiber: 1.2, sugar: 3.5, vitamin: 'Sodio', benefit: 'Ocasional.', custom: false },
+  { id: 94, name: 'Papas fritas', icon: '🍟', category: 'otro', calories: 312, protein: 3.4, carbs: 41, fat: 15, fiber: 3.8, sugar: 0.3, vitamin: 'Potasio', benefit: 'Snack ocasional.', custom: false },
+  { id: 95, name: 'Nachos', icon: '🧀', category: 'otro', calories: 346, protein: 7, carbs: 35, fat: 21, fiber: 4, sugar: 2, vitamin: 'Calcio', benefit: 'Muy calóricos.', custom: false },
+  { id: 96, name: 'Tacos', icon: '🌮', category: 'otro', calories: 226, protein: 9, carbs: 20, fat: 13, fiber: 3, sugar: 2, vitamin: 'Hierro', benefit: 'Comida completa.', custom: false },
+  { id: 97, name: 'Burrito', icon: '🌯', category: 'otro', calories: 326, protein: 13, carbs: 41, fat: 12, fiber: 5, sugar: 2, vitamin: 'Hierro', benefit: 'Muy saciante.', custom: false },
+  { id: 98, name: 'Sushi', icon: '🍣', category: 'otro', calories: 200, protein: 14, carbs: 28, fat: 4, fiber: 1, sugar: 3, vitamin: 'Omega-3', benefit: 'Ligero y nutritivo.', custom: false },
+  { id: 99, name: 'Ramen', icon: '🍜', category: 'otro', calories: 436, protein: 10, carbs: 63, fat: 16, fiber: 3, sugar: 4, vitamin: 'Sodio', benefit: 'Muy energético.', custom: false },
+  { id: 100, name: 'Sopa', icon: '🍲', category: 'otro', calories: 150, protein: 7, carbs: 15, fat: 6, fiber: 2, sugar: 2, vitamin: 'Vitaminas', benefit: 'Reconfortante.', custom: false },
+  { id: 101, name: 'Ensalada', icon: '🥗', category: 'otro', calories: 80, protein: 3, carbs: 10, fat: 3, fiber: 3, sugar: 4, vitamin: 'Vitaminas', benefit: 'Muy saludable.', custom: false },
+  { id: 102, name: 'Sandwich', icon: '🥪', category: 'otro', calories: 250, protein: 12, carbs: 30, fat: 9, fiber: 3, sugar: 4, vitamin: 'Vitamina B', benefit: 'Práctico.', custom: false },
+  { id: 103, name: 'Empanada', icon: '🥟', category: 'otro', calories: 260, protein: 9, carbs: 28, fat: 13, fiber: 2, sugar: 3, vitamin: 'Hierro', benefit: 'Muy popular.', custom: false },
+  { id: 104, name: 'Croissant', icon: '🥐', category: 'otro', calories: 406, protein: 8, carbs: 45, fat: 21, fiber: 2.6, sugar: 9, vitamin: 'Vitamina B', benefit: 'Muy mantecoso.', custom: false },
+  { id: 105, name: 'Donut', icon: '🍩', category: 'otro', calories: 452, protein: 5, carbs: 51, fat: 25, fiber: 2, sugar: 25, vitamin: 'Ninguna', benefit: 'Postre ocasional.', custom: false },
+  { id: 106, name: 'Pastel', icon: '🍰', category: 'otro', calories: 389, protein: 5, carbs: 53, fat: 17, fiber: 1, sugar: 36, vitamin: 'Ninguna', benefit: 'Dulce recreativo.', custom: false },
+  { id: 107, name: 'Chocolate', icon: '🍫', category: 'otro', calories: 546, protein: 4.9, carbs: 61, fat: 31, fiber: 7, sugar: 48, vitamin: 'Magnesio', benefit: 'Energía rápida.', custom: false },
+  { id: 108, name: 'Galletas', icon: '🍪', category: 'otro', calories: 502, protein: 6, carbs: 65, fat: 24, fiber: 2.7, sugar: 35, vitamin: 'Ninguna', benefit: 'Snack dulce.', custom: false },
+  { id: 109, name: 'Palomitas', icon: '🍿', category: 'otro', calories: 387, protein: 13, carbs: 78, fat: 4, fiber: 15, sugar: 0.9, vitamin: 'Vitamina B', benefit: 'Alta en fibra.', custom: false },
+  { id: 110, name: 'Churros', icon: '🥨', category: 'otro', calories: 447, protein: 5, carbs: 49, fat: 25, fiber: 2, sugar: 17, vitamin: 'Ninguna', benefit: 'Muy calóricos.', custom: false },
+
+  // ☕ BEBIDAS
+  { id: 111, name: 'Agua', icon: '💧', category: 'otro', calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0, vitamin: 'Ninguna', benefit: 'Hidratación esencial.', custom: false },
+  { id: 112, name: 'Café', icon: '☕', category: 'otro', calories: 2, protein: 0.3, carbs: 0, fat: 0, fiber: 0, sugar: 0, vitamin: 'Antioxidantes', benefit: 'Estimula.', custom: false },
+  { id: 113, name: 'Té', icon: '🍵', category: 'otro', calories: 1, protein: 0, carbs: 0.3, fat: 0, fiber: 0, sugar: 0, vitamin: 'Antioxidantes', benefit: 'Relajante.', custom: false },
+  { id: 114, name: 'Jugo natural', icon: '🧃', category: 'otro', calories: 45, protein: 0.5, carbs: 11, fat: 0.1, fiber: 0.2, sugar: 10, vitamin: 'Vitamina C', benefit: 'Refrescante.', custom: false },
+  { id: 115, name: 'Refresco', icon: '🥤', category: 'otro', calories: 41, protein: 0, carbs: 10.6, fat: 0, fiber: 0, sugar: 10.6, vitamin: 'Ninguna', benefit: 'Azucarado.', custom: false },
+  { id: 116, name: 'Agua de coco', icon: '🥥', category: 'otro', calories: 19, protein: 0.7, carbs: 3.7, fat: 0.2, fiber: 1.1, sugar: 2.6, vitamin: 'Potasio', benefit: 'Hidratación natural.', custom: false },
+  { id: 117, name: 'Batido', icon: '🥤', category: 'otro', calories: 150, protein: 5, carbs: 25, fat: 4, fiber: 3, sugar: 18, vitamin: 'Vitaminas', benefit: 'Refrescante.', custom: false },
+  { id: 118, name: 'Leche chocolatada', icon: '🥛', category: 'otro', calories: 83, protein: 3.4, carbs: 12, fat: 2, fiber: 0, sugar: 11, vitamin: 'Calcio', benefit: 'Energética.', custom: false },
+  { id: 119, name: 'Malteada', icon: '🥤', category: 'otro', calories: 230, protein: 6, carbs: 30, fat: 9, fiber: 1, sugar: 25, vitamin: 'Calcio', benefit: 'Postre líquido.', custom: false },
+  { id: 120, name: 'Bebida energética', icon: '⚡', category: 'otro', calories: 110, protein: 0, carbs: 28, fat: 0, fiber: 0, sugar: 27, vitamin: 'Vitamina B', benefit: 'Estimulación rápida.', custom: false },
+
+  // 🧠 EXTRA / ESPECIALES
+  { id: 121, name: 'Aceite de oliva', icon: '🫒', category: 'otro', calories: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, sugar: 0, vitamin: 'Vitamina E', benefit: 'Grasa saludable.', custom: false },
+  { id: 122, name: 'Manteca', icon: '🧈', category: 'otro', calories: 902, protein: 0, carbs: 0, fat: 100, fiber: 0, sugar: 0, vitamin: 'Vitamina A', benefit: 'Grasa concentrada.', custom: false },
+  { id: 123, name: 'Mayonesa', icon: '🥪', category: 'otro', calories: 680, protein: 1, carbs: 1, fat: 75, fiber: 0, sugar: 1, vitamin: 'Vitamina E', benefit: 'Muy calórica.', custom: false },
+  { id: 124, name: 'Ketchup', icon: '🍅', category: 'otro', calories: 112, protein: 1.3, carbs: 26, fat: 0.2, fiber: 0.3, sugar: 22, vitamin: 'Vitamina C', benefit: 'Condimento dulce.', custom: false },
+  { id: 125, name: 'Mostaza', icon: '🌭', category: 'otro', calories: 66, protein: 4, carbs: 6, fat: 4, fiber: 3, sugar: 1, vitamin: 'Selenio', benefit: 'Condimento ligero.', custom: false },
+  { id: 126, name: 'Salsa picante', icon: '🌶️', category: 'otro', calories: 12, protein: 0.5, carbs: 2.5, fat: 0.1, fiber: 0.5, sugar: 1.5, vitamin: 'Vitamina C', benefit: 'Aumenta metabolismo.', custom: false },
+  { id: 127, name: 'Soya', icon: '🫘', category: 'otro', calories: 173, protein: 16, carbs: 9.9, fat: 9, fiber: 6, sugar: 3, vitamin: 'Hierro', benefit: 'Fuente vegetal.', custom: false },
+  { id: 128, name: 'Edamame', icon: '🫘', category: 'otro', calories: 122, protein: 11, carbs: 10, fat: 5, fiber: 5, sugar: 2, vitamin: 'Hierro', benefit: 'Snack saludable.', custom: false },
+  { id: 129, name: 'Semillas de chía', icon: '🫘', category: 'otro', calories: 486, protein: 17, carbs: 42, fat: 31, fiber: 34, sugar: 0, vitamin: 'Omega-3', benefit: 'Altísima fibra.', custom: false },
+  { id: 130, name: 'Semillas de lino', icon: '🫘', category: 'otro', calories: 534, protein: 18, carbs: 29, fat: 42, fiber: 27, sugar: 2, vitamin: 'Omega-3', benefit: 'Digestión.', custom: false },
+  { id: 131, name: 'Nueces', icon: '🌰', category: 'otro', calories: 654, protein: 15, carbs: 14, fat: 65, fiber: 7, sugar: 2.6, vitamin: 'Omega-3', benefit: 'Grasas buenas.', custom: false },
+  { id: 132, name: 'Maní', icon: '🥜', category: 'otro', calories: 567, protein: 26, carbs: 16, fat: 49, fiber: 9, sugar: 4, vitamin: 'Niacina', benefit: 'Proteína vegetal.', custom: false },
+  { id: 133, name: 'Avellanas', icon: '🌰', category: 'otro', calories: 628, protein: 15, carbs: 17, fat: 61, fiber: 10, sugar: 4, vitamin: 'Vitamina E', benefit: 'Antioxidantes.', custom: false },
+  { id: 134, name: 'Pistachos', icon: '🌰', category: 'otro', calories: 562, protein: 20, carbs: 28, fat: 45, fiber: 10, sugar: 8, vitamin: 'Vitamina B6', benefit: 'Snack saludable.', custom: false },
+  { id: 135, name: 'Anacardos', icon: '🌰', category: 'otro', calories: 553, protein: 18, carbs: 30, fat: 44, fiber: 3.3, sugar: 6, vitamin: 'Magnesio', benefit: 'Energéticos.', custom: false },
+  { id: 136, name: 'Aceitunas', icon: '🫒', category: 'otro', calories: 145, protein: 1, carbs: 4, fat: 15, fiber: 3.3, sugar: 0, vitamin: 'Vitamina E', benefit: 'Grasa saludable.', custom: false },
+  { id: 137, name: 'Hummus', icon: '🥣', category: 'otro', calories: 166, protein: 8, carbs: 14, fat: 9.6, fiber: 6, sugar: 0.3, vitamin: 'Hierro', benefit: 'Dip saludable.', custom: false },
+  { id: 138, name: 'Guacamole', icon: '🥑', category: 'otro', calories: 160, protein: 2, carbs: 8.6, fat: 15, fiber: 6.7, sugar: 0.7, vitamin: 'Potasio', benefit: 'Muy saciante.', custom: false },
+  { id: 139, name: 'Salsa de tomate', icon: '🍅', category: 'otro', calories: 29, protein: 1.4, carbs: 7, fat: 0.2, fiber: 1.7, sugar: 4.1, vitamin: 'Licopeno', benefit: 'Antioxidante.', custom: false },
+  { id: 140, name: 'Miel', icon: '🍯', category: 'otro', calories: 304, protein: 0.3, carbs: 82.4, fat: 0, fiber: 0.2, sugar: 82.1, vitamin: 'Varios', benefit: 'Energía rápida.', custom: false },
+
+  // 🎯 BONUS
+  { id: 141, name: 'Panqueques', icon: '🥞', category: 'otro', calories: 227, protein: 6, carbs: 28, fat: 10, fiber: 1, sugar: 9, vitamin: 'Vitamina B', benefit: 'Desayuno dulce.', custom: false },
+  { id: 142, name: 'Waffles', icon: '🧇', category: 'otro', calories: 291, protein: 7, carbs: 32, fat: 14, fiber: 1.5, sugar: 10, vitamin: 'Vitamina B', benefit: 'Muy energéticos.', custom: false },
+  { id: 143, name: 'Croquetas', icon: '🥔', category: 'otro', calories: 250, protein: 6, carbs: 30, fat: 12, fiber: 3, sugar: 2, vitamin: 'Vitamina B', benefit: 'Snack salado.', custom: false },
+  { id: 144, name: 'Arroz con pollo', icon: '🍛', category: 'otro', calories: 220, protein: 14, carbs: 28, fat: 6, fiber: 2, sugar: 2, vitamin: 'Vitamina B', benefit: 'Plato completo.', custom: false },
+  { id: 145, name: 'Paella', icon: '🥘', category: 'otro', calories: 210, protein: 13, carbs: 27, fat: 6, fiber: 2, sugar: 2, vitamin: 'Hierro', benefit: 'Comida tradicional.', custom: false },
+  { id: 146, name: 'Lasaña', icon: '🍝', category: 'otro', calories: 300, protein: 14, carbs: 34, fat: 14, fiber: 3, sugar: 4, vitamin: 'Calcio', benefit: 'Muy saciante.', custom: false },
+  { id: 147, name: 'Enchiladas', icon: '🌮', category: 'otro', calories: 260, protein: 12, carbs: 30, fat: 11, fiber: 4, sugar: 3, vitamin: 'Hierro', benefit: 'Plato completo.', custom: false },
+  { id: 148, name: 'Ceviche', icon: '🐟', category: 'otro', calories: 140, protein: 20, carbs: 5, fat: 2, fiber: 1, sugar: 2, vitamin: 'Vitamina C', benefit: 'Muy fresco.', custom: false },
+  { id: 149, name: 'Sopa de pollo', icon: '🍲', category: 'otro', calories: 120, protein: 10, carbs: 8, fat: 4, fiber: 1, sugar: 2, vitamin: 'Vitamina B', benefit: 'Reconfortante.', custom: false },
+  { id: 150, name: 'Arroz con leche', icon: '🍚', category: 'otro', calories: 180, protein: 5, carbs: 30, fat: 4, fiber: 0.5, sugar: 18, vitamin: 'Calcio', benefit: 'Postre clásico.', custom: false }
+];
+
+
+    // ==========================================
+    // ESTADO GLOBAL
+    // ==========================================
+    let userData = null;
+    let userIMC = null;
+    let currentCategory = 'todos';
+    let searchTerm = '';
+    let selectedFoods = [];
+    let currentFoodModal = null;
+    let selectedQuantity = null;
+    let foodsDatabase = [...INITIAL_FOODS];
+    let nextFoodId = 31;
+
+    const QUANTITY_PRESETS = [50, 100, 150, 200];
+
+    // ==========================================
+    // CONFIGURACIÓN DEL SDK
+    // ==========================================
+    const defaultConfig = {
+      main_title: 'Selecciona un alimento',
+      subtitle: 'Elige el alimento que deseas analizar nutricionalmente',
+      form_title: 'Agregar alimento personalizado'
+    };
+
+    let config = { ...defaultConfig };
+
+    // ==========================================
+    // FUNCIONES DE UTILIDAD
+    // ==========================================
+    function loadUserData() {
+      const saved = localStorage.getItem('userHealthData');
+      if (!saved) {
+        showToast('No se encontraron datos del usuario');
+        setTimeout(() => {
+          window.history.back();
+        }, 2000);
+        return false;
+      }
+
+      try {
+        userData = JSON.parse(saved);
+        
+        // Calcular IMC
+        const heightInMeters = userData.height / 100;
+        userIMC = userData.weight / (heightInMeters * heightInMeters);
+
+        // Actualizar saludo
+        document.getElementById('greeting-text').innerHTML = `👋 ¡Hola, ${userData.name}!<br>Bienvenido a tu selección de alimentos`;
+        
+        // Actualizar objetivo
+        const objectiveMap = {
+          'perder-peso': 'Bajar de peso',
+          'ganar-musculo': 'Ganar masa muscular',
+          'mantener-peso': 'Mantener peso',
+          'mejorar-salud': 'Mejorar salud'
+        };
+        const objectiveText = objectiveMap[userData.objectives?.[0]] || 'Mejorar salud';
+        document.getElementById('greeting-subtitle').textContent = `Objetivo: ${objectiveText}`;
+
+        return true;
+      } catch (e) {
+        console.error('Error cargando datos', e);
+        return false;
+      }
+    }
+
+    function calculateFoodRecommendation(food) {
+      let recommendation = 'amarillo';
+
+      if (!userData) return recommendation;
+
+      const objective = userData.objectives?.[0];
+
+      if (objective === 'perder-peso') {
+        if (food.calories < 100) recommendation = 'verde';
+        else if (food.calories > 200) recommendation = 'rojo';
+        else recommendation = 'amarillo';
+      } else if (objective === 'ganar-musculo') {
+        if (food.protein > 15) recommendation = 'verde';
+        else if (food.calories < 100) recommendation = 'rojo';
+        else recommendation = 'amarillo';
+      } else if (objective === 'mantener-peso') {
+        recommendation = 'verde';
+      } else {
+        if (food.fiber > 2 || food.protein > 10) recommendation = 'verde';
+        else recommendation = 'amarillo';
+      }
+
+      return recommendation;
+    }
+
+    function getRecommendationLabel(recommendation) {
+      const map = {
+        'verde': '🟢 Recomendado',
+        'amarillo': '🟡 Moderado',
+        'rojo': '🔴 No recomendado'
+      };
+      return map[recommendation] || 'Neutral';
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toast-message');
+      toastMessage.textContent = message;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 3000);
+    }
+
+    function validateCustomFood() {
+      const name = document.getElementById('custom-name').value.trim();
+      const category = document.getElementById('custom-category').value;
+      const calories = parseFloat(document.getElementById('custom-calories').value);
+      const protein = parseFloat(document.getElementById('custom-protein').value);
+      const carbs = parseFloat(document.getElementById('custom-carbs').value);
+      const fat = parseFloat(document.getElementById('custom-fat').value);
+      const fiber = parseFloat(document.getElementById('custom-fiber').value);
+      const sugar = parseFloat(document.getElementById('custom-sugar').value);
+      const vitamin = document.getElementById('custom-vitamin').value.trim();
+      const benefit = document.getElementById('custom-benefit').value.trim();
+
+      if (!name) {
+        showToast('Por favor ingresa el nombre del alimento');
+        return false;
+      }
+      if (!category) {
+        showToast('Por favor selecciona una categoría');
+        return false;
+      }
+      if (isNaN(calories) || calories < 0) {
+        showToast('Por favor ingresa calorías válidas');
+        return false;
+      }
+
+      return true;
+    }
+
+    // ==========================================
+    // RENDER FUNCIONES
+    // ==========================================
+    function renderCategories() {
+      const container = document.getElementById('category-filters');
+      const categories = [
+        { id: 'todos', label: '✓ Todos', icon: '🍽️' },
+        { id: 'frutas', label: 'Frutas', icon: '🍎' },
+        { id: 'verduras', label: 'Verduras', icon: '🥦' },
+        { id: 'proteinas', label: 'Proteínas', icon: '🍗' },
+        { id: 'lacteos', label: 'Lácteos', icon: '🥛' },
+        { id: 'cereales', label: 'Cereales', icon: '🌾' }
+      ];
+
+      container.innerHTML = categories.map(cat => `
+        <button
+          class="category-tab ${cat.id === 'todos' ? 'active' : ''} px-4 py-2 rounded-full font-semibold text-gray-700 bg-gray-100 transition-all category-button"
+          data-category="${cat.id}"
+        >
+          ${cat.icon} ${cat.label}
+        </button>
+      `).join('');
+
+      document.querySelectorAll('.category-button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.category-button').forEach(b => {
+            b.classList.remove('active');
+            b.classList.add('bg-gray-100', 'text-gray-700');
+          });
+          btn.classList.add('active');
+          btn.classList.remove('bg-gray-100', 'text-gray-700');
+          currentCategory = btn.dataset.category;
+          renderFoods();
+        });
+      });
+    }
+
+    function filterFoods() {
+      let filtered = foodsDatabase;
+
+      if (currentCategory !== 'todos') {
+        filtered = filtered.filter(food => food.category === currentCategory);
+      }
+
+      if (searchTerm) {
+        filtered = filtered.filter(food =>
+          food.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+
+      return filtered;
+    }
+
+    function renderFoods() {
+      const foods = filterFoods();
+      const grid = document.getElementById('foods-grid');
+      const noResults = document.getElementById('no-results');
+
+      if (foods.length === 0) {
+        grid.classList.add('hidden');
+        noResults.classList.remove('hidden');
+        return;
+      }
+
+      grid.classList.remove('hidden');
+      noResults.classList.add('hidden');
+
+      grid.innerHTML = foods.map((food, index) => {
+        const recommendation = calculateFoodRecommendation(food);
+        const recommendationLabel = getRecommendationLabel(recommendation);
+        
+        // Mapeo de colores para fondo completo
+        const bgColorMap = {
+          'verde': 'bg-green-50',
+          'amarillo': 'bg-yellow-50',
+          'rojo': 'bg-red-50'
+        };
+        
+        const textColorMap = {
+          'verde': 'text-green-900',
+          'amarillo': 'text-amber-900',
+          'rojo': 'text-red-900'
+        };
+        
+        const categoryColorMap = {
+          'verde': 'text-green-700',
+          'amarillo': 'text-amber-700',
+          'rojo': 'text-red-700'
+        };
+        
+        const badgeMap = {
+          'verde': '✔️',
+          'amarillo': '⚠️',
+          'rojo': '❌'
+        };
+        
+        const badgeColorBg = {
+          'verde': 'bg-green-200',
+          'amarillo': 'bg-yellow-200',
+          'rojo': 'bg-red-200'
+        };
+        
+        const badgeColorText = {
+          'verde': 'text-green-800',
+          'amarillo': 'text-amber-800',
+          'rojo': 'text-red-800'
+        };
+
+        return `
+          <div class="food-card ${bgColorMap[recommendation]} rounded-2xl shadow-md overflow-hidden border-l-4 border-${recommendation}-400 slide-in-up stagger-${(index % 6) + 1} hover:shadow-xl transition-all" data-food-id="${food.id}">
+            <div class="p-6">
+              <div class="flex items-start justify-between mb-3">
+                <span class="text-4xl">${food.icon || '🍽️'}</span>
+                <span class="${badgeColorBg[recommendation]} ${badgeColorText[recommendation]} px-3 py-2 rounded-full text-sm font-bold flex items-center gap-1">
+                  ${badgeMap[recommendation]}
+                </span>
+              </div>
+              <h3 class="text-xl font-bold ${textColorMap[recommendation]} mb-1">${food.name}</h3>
+              <p class="text-sm ${categoryColorMap[recommendation]} mb-3 opacity-80">${food.category.charAt(0).toUpperCase() + food.category.slice(1)}${food.custom ? ' (personalizado)' : ''}</p>
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-2xl font-bold text-orange-600">${food.calories}</p>
+                  <p class="text-xs ${categoryColorMap[recommendation]} opacity-70">kcal/100g</p>
+                </div>
+                <button class="px-4 py-2 bg-blue-400 text-white rounded-lg font-semibold hover:bg-blue-500 transition-all btn-transition open-modal-btn shadow-md" data-food-id="${food.id}">
+                  Ver más
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.open-modal-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const foodId = parseInt(btn.dataset.foodId);
+          openFoodModal(foodId);
+        });
+      });
+    }
+
+    // ==========================================
+    // FUNCIONES DEL MODAL
+    // ==========================================
+    function openFoodModal(foodId) {
+      const food = foodsDatabase.find(f => f.id === foodId);
+      if (!food) return;
+
+      currentFoodModal = food;
+      selectedQuantity = null;
+
+      const recommendation = calculateFoodRecommendation(food);
+      const recommendationLabel = getRecommendationLabel(recommendation);
+
+      document.getElementById('modal-food-emoji').textContent = food.icon || '🍽️';
+      document.getElementById('modal-food-name').textContent = food.name;
+      document.getElementById('modal-food-category').textContent = food.category.charAt(0).toUpperCase() + food.category.slice(1);
+      document.getElementById('modal-recommendation-text').textContent = recommendationLabel;
+
+      const badgeEl = document.getElementById('modal-recommendation-badge');
+      badgeEl.className = `color-badge badge-${recommendation}`;
+
+      document.getElementById('modal-calories').textContent = food.calories;
+      document.getElementById('modal-protein').textContent = food.protein.toFixed(1);
+      document.getElementById('modal-carbs').textContent = food.carbs.toFixed(1);
+      document.getElementById('modal-fat').textContent = food.fat.toFixed(1);
+      document.getElementById('modal-fiber').textContent = food.fiber.toFixed(1);
+      document.getElementById('modal-sugar').textContent = food.sugar.toFixed(1);
+
+      document.getElementById('modal-benefit').textContent = food.benefit;
+      document.getElementById('modal-vitamin').textContent = food.vitamin;
+
+      const presetsContainer = document.getElementById('quantity-presets');
+      presetsContainer.innerHTML = QUANTITY_PRESETS.map(qty => `
+        <button
+          class="quantity-preset px-4 py-3 bg-gray-100 hover:bg-blue-100 rounded-lg font-bold text-gray-700 hover:text-blue-700 transition-all"
+          data-quantity="${qty}"
+        >
+          ${qty}g
+        </button>
+      `).join('');
+
+      document.querySelectorAll('.quantity-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedQuantity = parseInt(btn.dataset.quantity);
+          updateQuantitySummary();
+          document.querySelectorAll('.quantity-preset').forEach(b => {
+            b.classList.remove('bg-blue-400', 'text-white');
+            b.classList.add('bg-gray-100', 'text-gray-700');
+          });
+          btn.classList.remove('bg-gray-100', 'text-gray-700');
+          btn.classList.add('bg-blue-400', 'text-white');
+        });
+      });
+
+      document.getElementById('btn-custom-quantity').addEventListener('click', () => {
+        const customQty = parseInt(document.getElementById('custom-quantity').value);
+        if (customQty && customQty > 0) {
+          selectedQuantity = customQty;
+          updateQuantitySummary();
+          document.querySelectorAll('.quantity-preset').forEach(b => {
+            b.classList.remove('bg-blue-400', 'text-white');
+            b.classList.add('bg-gray-100', 'text-gray-700');
+          });
+          document.getElementById('custom-quantity').value = '';
+        } else {
+          showToast('Ingresa una cantidad válida');
+        }
+      });
+
+      document.getElementById('food-modal').classList.remove('hidden');
+    }
+
+    function updateQuantitySummary() {
+      if (!selectedQuantity || !currentFoodModal) return;
+
+      const caloriesTotal = (currentFoodModal.calories * selectedQuantity) / 100;
+      
+      document.getElementById('quantity-summary').classList.remove('hidden');
+      document.getElementById('summary-quantity').textContent = selectedQuantity + 'g';
+      document.getElementById('summary-calories').textContent = Math.round(caloriesTotal) + ' kcal';
+
+      document.getElementById('btn-add-food').disabled = false;
+    }
+
+    function closeFoodModal() {
+      document.getElementById('food-modal').classList.add('hidden');
+      currentFoodModal = null;
+      selectedQuantity = null;
+    }
+
+    // ==========================================
+    // FUNCIONES DE ALIMENTOS SELECCIONADOS
+    // ==========================================
+    function addSelectedFood() {
+      if (!currentFoodModal || !selectedQuantity) {
+        showToast('Por favor selecciona una cantidad');
+        return;
+      }
+
+      selectedFoods.push({
+        food: { ...currentFoodModal },
+        quantity: selectedQuantity
+      });
+
+      showToast(`${currentFoodModal.name} añadido a tu selección`);
+      closeFoodModal();
+      renderSelectedFoods();
+    }
+
+    function removeSelectedFood(index) {
+      const removed = selectedFoods.splice(index, 1);
+      showToast(`${removed[0].food.name} eliminado`);
+      renderSelectedFoods();
+    }
+
+    function renderSelectedFoods() {
+      const container = document.getElementById('selected-foods-list');
+      const summary = document.getElementById('calories-summary');
+
+      if (selectedFoods.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-8">Aún no has seleccionado ningún alimento</p>';
+        summary.classList.add('hidden');
+        return;
+      }
+
+      let totalCalories = 0;
+
+      container.innerHTML = selectedFoods.map((item, index) => {
+        const calories = Math.round((item.food.calories * item.quantity) / 100);
+        totalCalories += calories;
+
+        return `
+          <div class="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border-l-4 border-blue-400 flex justify-between items-center selected-item">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl">${item.food.icon || '🍽️'}</span>
+              <div>
+                <p class="font-bold text-gray-800">${item.food.name}</p>
+                <p class="text-sm text-gray-600">${item.quantity}g = ${calories} kcal</p>
+              </div>
+            </div>
+            <button
+              class="text-gray-500 hover:text-red-500 transition-all remove-food-btn"
+              data-index="${index}"
+              title="Eliminar"
+            >
+              ✕
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.remove-food-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          removeSelectedFood(parseInt(btn.dataset.index));
+        });
+      });
+
+      summary.classList.remove('hidden');
+      document.getElementById('total-calories').textContent = totalCalories;
+    }
+
+    // ==========================================
+    // FUNCIONES DEL FORMULARIO PERSONALIZADO
+    // ==========================================
+    function toggleCustomForm() {
+      const form = document.getElementById('custom-food-form');
+      const toggleBtn = document.getElementById('toggle-form-btn');
+      const toggleIcon = document.getElementById('toggle-icon');
+      
+      form.classList.toggle('open');
+      
+      if (form.classList.contains('open')) {
+        toggleIcon.textContent = '▲';
+        toggleIcon.style.transform = 'rotate(180deg)';
+      } else {
+        toggleIcon.textContent = '▼';
+        toggleIcon.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    function resetCustomForm() {
+      document.getElementById('custom-name').value = '';
+      document.getElementById('custom-category').value = '';
+      document.getElementById('custom-emoji').value = '';
+      document.getElementById('custom-calories').value = '';
+      document.getElementById('custom-protein').value = '';
+      document.getElementById('custom-carbs').value = '';
+      document.getElementById('custom-fat').value = '';
+      document.getElementById('custom-fiber').value = '';
+      document.getElementById('custom-sugar').value = '';
+      document.getElementById('custom-vitamin').value = '';
+      document.getElementById('custom-benefit').value = '';
+    }
+
+    function saveCustomFood() {
+      if (!validateCustomFood()) return;
+
+      const newFood = {
+        id: nextFoodId++,
+        name: document.getElementById('custom-name').value.trim(),
+        icon: document.getElementById('custom-emoji').value || '🍽️',
+        category: document.getElementById('custom-category').value,
+        calories: parseFloat(document.getElementById('custom-calories').value),
+        protein: parseFloat(document.getElementById('custom-protein').value) || 0,
+        carbs: parseFloat(document.getElementById('custom-carbs').value) || 0,
+        fat: parseFloat(document.getElementById('custom-fat').value) || 0,
+        fiber: parseFloat(document.getElementById('custom-fiber').value) || 0,
+        sugar: parseFloat(document.getElementById('custom-sugar').value) || 0,
+        vitamin: document.getElementById('custom-vitamin').value.trim() || 'Nutrientes variados',
+        benefit: document.getElementById('custom-benefit').value.trim() || 'Alimento personalizado',
+        custom: true
+      };
+
+      foodsDatabase.push(newFood);
+      resetCustomForm();
+      toggleCustomForm();
+      showToast(`✅ ${newFood.name} añadido a la base de datos`);
+      renderFoods();
+    }
+
+    // ==========================================
+    // EVENT LISTENERS
+    // ==========================================
+    function setupEventListeners() {
+      // Formulario personalizado
+      document.getElementById('toggle-form-btn').addEventListener('click', toggleCustomForm);
+      document.getElementById('btn-save-custom').addEventListener('click', saveCustomFood);
+      document.getElementById('btn-reset-form').addEventListener('click', resetCustomForm);
+
+      // Buscador
+      document.getElementById('search-input').addEventListener('input', (e) => {
+        searchTerm = e.target.value;
+        renderFoods();
+      });
+
+      // Modal buttons
+      document.getElementById('btn-close-modal').addEventListener('click', closeFoodModal);
+      document.getElementById('btn-cancel-modal').addEventListener('click', closeFoodModal);
+      document.getElementById('btn-add-food').addEventListener('click', addSelectedFood);
+
+      // Cerrar modal al hacer clic fuera
+      document.getElementById('food-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'food-modal') {
+          closeFoodModal();
+        }
+      });
+
+      // Navegación
+      document.getElementById('btn-back').addEventListener('click', () => {
+  window.location.href = 'datos.html';
+});
+
+      document.getElementById('btn-continue').addEventListener('click', () => {
+        if (selectedFoods.length === 0) {
+          showToast('Por favor selecciona al menos un alimento');
+          return;
+        }
+
+        localStorage.setItem('selectedFoods', JSON.stringify(selectedFoods));
+        localStorage.setItem('userIMC', userIMC.toFixed(1));
+
+        showToast('¡Datos guardados! Yendo al resumen...');
+        setTimeout(() => {
+        window.location.href = 'resumen.html';
+        }, 1000);
+      });
+    }
+
+    // ==========================================
+    // INICIALIZACIÓN DEL SDK
+    // ==========================================
+    async function initSDK() {
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange: async (newConfig) => {
+            config = { ...newConfig };
+            document.getElementById('main-title').textContent = config.main_title || defaultConfig.main_title;
+            document.getElementById('subtitle').textContent = config.subtitle || defaultConfig.subtitle;
+            document.getElementById('form-title').textContent = config.form_title || defaultConfig.form_title;
+          },
+          mapToCapabilities: (cfg) => ({
+            recolorables: [],
+            borderables: [],
+            fontEditable: undefined,
+            fontSizeable: undefined
+          }),
+          mapToEditPanelValues: (cfg) => new Map([
+            ['main_title', cfg.main_title || defaultConfig.main_title],
+            ['subtitle', cfg.subtitle || defaultConfig.subtitle],
+            ['form_title', cfg.form_title || defaultConfig.form_title]
+          ])
+        });
+      }
+    }
+
+    // ==========================================
+    // INICIALIZACIÓN
+    // ==========================================
+    async function init() {
+      if (!loadUserData()) {
+        return;
+      }
+
+      await initSDK();
+      renderCategories();
+      renderFoods();
+      setupEventListeners();
+      renderSelectedFoods();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c62599b4202825b',t:'MTc2OTc5MDU4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
