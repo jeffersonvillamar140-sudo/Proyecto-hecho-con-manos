@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeBite Plus — Plan Nutricional Sin Huevo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Tema Sage Green heredado de la versión Gluten Free */
+  --sage: #3d6b4f;
+  --sage-light: #5a8a69;
+  --sage-pale: #e8f0eb;
+  --amber: #d4820a;
+  --amber-light: #f5a623;
+  --amber-pale: #fef3dc;
+  --cream: #faf8f4;
+  --dark: #1a2e23;
+  --mid: #4a6355;
+  --text: #2d3e33;
+  --text-light: #6b8070;
+  --border: #d4e0d8;
+  --white: #ffffff;
+  --red: #c0392b;
+  --blue: #2563eb;
+  --purple: #7c3aed;
+  --card-radius: 20px;
+  --shadow: 0 4px 24px rgba(61,107,79,0.10);
+  --shadow-lg: 0 12px 48px rgba(61,107,79,0.18);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+
+/* ── LAYOUT ── */
+.app-shell { max-width: 1100px; margin: 0 auto; padding: 0 16px 80px; }
+
+/* ── HEADER ── */
+.app-header { padding: 32px 0 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.app-logo { font-family: 'Syne', sans-serif; font-size: clamp(28px,5vw,44px); font-weight: 800; color: var(--sage); letter-spacing: -1px; }
+.app-logo span { color: var(--amber); }
+.app-sub { font-size: 14px; color: var(--text-light); letter-spacing: 0.5px; font-weight: 500; }
+.huevo-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--sage); color: white; padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+/* ── PROGRESS HEADER ── */
+.month-header { display: flex; align-items: center; justify-content: space-between; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--card-radius); padding: 18px 24px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.month-label { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--dark); }
+.month-progress { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.month-bar-wrap { width: 180px; height: 8px; background: var(--sage-pale); border-radius: 4px; overflow: hidden; }
+.month-bar-fill { height: 100%; background: linear-gradient(90deg, var(--amber), var(--amber-light)); border-radius: 4px; transition: width 0.6s ease; }
+.month-stat { font-size: 12px; color: var(--text-light); font-weight: 600; }
+
+/* ── PLAN SELECTOR ── */
+.section-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; }
+.plan-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 28px; }
+.plan-card { border: 2px solid var(--border); border-radius: var(--card-radius); background: var(--white); padding: 18px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; }
+.plan-card:hover { border-color: var(--sage-light); box-shadow: var(--shadow); transform: translateY(-2px); }
+.plan-card.active { border-color: var(--sage); background: var(--sage-pale); }
+.plan-card .icon { font-size: 32px; margin-bottom: 8px; }
+.plan-card .name { font-weight: 700; font-size: 13px; color: var(--dark); }
+.plan-card .range { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.plan-card.active .name { color: var(--sage); }
+
+/* ── WEEK / DAY NAVIGATION ── */
+.nav-section { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--card-radius); overflow: hidden; margin-bottom: 24px; box-shadow: var(--shadow); }
+.week-tabs { display: flex; border-bottom: 1.5px solid var(--border); }
+.week-tab { flex: 1; padding: 12px 8px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-light); cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; text-transform: uppercase; }
+.week-tab:hover { background: var(--sage-pale); color: var(--sage); }
+.week-tab.active { background: var(--sage); color: white; }
+.day-row { display: grid; grid-template-columns: repeat(7,1fr); padding: 12px; gap: 8px; }
+.day-btn { border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 4px; text-align: center; cursor: pointer; background: var(--white); transition: all 0.2s; position: relative; }
+.day-btn:hover { border-color: var(--sage-light); background: var(--sage-pale); }
+.day-btn.active { border-color: var(--sage); background: var(--sage); color: white; }
+.day-btn.active .day-name, .day-btn.active .day-num { color: white; }
+.day-btn.completed-day::after { content: '✓'; position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; background: var(--amber); border-radius: 50%; font-size: 9px; font-weight: 900; color: white; display: flex; align-items: center; justify-content: center; }
+.day-name { font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+.day-num { font-size: 16px; font-weight: 800; color: var(--dark); margin-top: 2px; }
+.day-dot { width: 6px; height: 6px; border-radius: 3px; background: var(--border); margin: 4px auto 0; }
+.day-btn.completed-day .day-dot { background: var(--amber-light); }
+.day-btn.today-btn { outline: 2px solid var(--sage); outline-offset: 2px; }
+
+
+/* ── DAILY PANEL ── */
+.daily-panel { display: none; }
+.daily-panel.visible { display: block; }
+.daily-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.daily-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--dark); }
+.daily-macros { display: flex; gap: 10px; flex-wrap: wrap; }
+.macro-pill { background: var(--sage-pale); border: 1px solid var(--sage-light); border-radius: 12px; padding: 6px 12px; font-size: 11px; font-weight: 700; color: var(--sage); display: flex; gap: 4px; align-items: center; }
+.macro-pill span { color: var(--amber); }
+.day-progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+.day-progress-fill { height: 100%; background: linear-gradient(90deg, var(--sage), var(--sage-light)); border-radius: 3px; transition: width 0.5s; }
+
+/* ── MEAL CARDS ── */
+.meals-list { display: flex; flex-direction: column; gap: 16px; }
+.meal-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--card-radius); overflow: hidden; box-shadow: var(--shadow); transition: all 0.25s; }
+.meal-card.done { border-color: var(--sage-light); background: linear-gradient(135deg, var(--white), var(--sage-pale)); }
+.meal-head { display: flex; align-items: flex-start; gap: 14px; padding: 18px 18px 14px; cursor: pointer; }
+.meal-time-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.meal-meta { flex: 1; min-width: 0; }
+.meal-type-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.meal-type-tag { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 3px 8px; border-radius: 6px; }
+.meal-cal { font-size: 11px; font-weight: 700; color: var(--text-light); margin-left: auto; }
+.meal-name { font-weight: 800; font-size: 15px; color: var(--dark); line-height: 1.2; }
+.meal-desc { font-size: 12px; color: var(--text-light); margin-top: 3px; line-height: 1.4; }
+.meal-check-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; padding-top: 2px; }
+.meal-check { width: 26px; height: 26px; accent-color: var(--sage); cursor: pointer; border-radius: 6px; }
+.meal-check-label { font-size: 9px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+.chevron { font-size: 14px; color: var(--text-light); transition: transform 0.3s; flex-shrink: 0; margin-top: 4px; }
+.meal-card.expanded .chevron { transform: rotate(180deg); }
+
+/* ── RECIPE DETAIL ── */
+.recipe-detail { display: none; border-top: 1.5px solid var(--border); }
+.recipe-detail.open { display: block; }
+.recipe-tabs { display: flex; border-bottom: 1.5px solid var(--border); }
+.recipe-tab { flex: 1; padding: 11px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-light); cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
+.recipe-tab.active { background: var(--amber-pale); color: var(--amber); border-bottom: 2px solid var(--amber); }
+.recipe-pane { padding: 20px 18px; display: none; }
+.recipe-pane.active { display: block; }
+
+/* Nutrition pane */
+.macros-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+.macro-box { text-align: center; background: var(--sage-pale); border-radius: 14px; padding: 14px 8px; }
+.macro-val { font-size: 22px; font-weight: 900; color: var(--amber); }
+.macro-lbl { font-size: 10px; font-weight: 700; color: var(--sage); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.macro-bar-section { margin-top: 14px; }
+.mbar-row { margin-bottom: 10px; }
+.mbar-labels { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.mbar-name { font-size: 12px; font-weight: 700; color: var(--text); }
+.mbar-pct { font-size: 12px; font-weight: 700; color: var(--text-light); }
+.mbar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.mbar-fill { height: 100%; border-radius: 4px; }
+.benefits-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.benefit-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--text); line-height: 1.4; }
+.benefit-icon { color: var(--sage-light); font-weight: 900; flex-shrink: 0; }
+
+/* Ingredients pane */
+.time-diff-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.info-chip { background: var(--sage-pale); border-radius: 14px; padding: 12px; text-align: center; }
+.info-chip .ic-icon { font-size: 20px; }
+.info-chip .ic-label { font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.info-chip .ic-value { font-size: 14px; font-weight: 800; color: var(--dark); margin-top: 1px; }
+.ingredients-list { display: flex; flex-direction: column; gap: 8px; }
+.ing-item { display: flex; align-items: center; gap: 10px; background: var(--cream); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; font-size: 13px; color: var(--text); font-weight: 500; }
+.ing-dot { width: 8px; height: 8px; border-radius: 4px; background: var(--amber); flex-shrink: 0; }
+
+/* Preparation pane */
+.steps-list { display: flex; flex-direction: column; gap: 12px; }
+.step-item { display: flex; gap: 14px; }
+.step-num { width: 32px; height: 32px; border-radius: 10px; background: var(--sage); color: white; font-size: 13px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.step-content { flex: 1; }
+.step-title { font-weight: 700; font-size: 13px; color: var(--dark); margin-bottom: 3px; }
+.step-body { font-size: 12px; color: var(--text-light); line-height: 1.6; }
+.tip-box { background: var(--amber-pale); border: 1.5px solid #f0d080; border-radius: 14px; padding: 14px 16px; margin-top: 14px; display: flex; gap: 10px; align-items: flex-start; }
+.tip-icon { font-size: 18px; flex-shrink: 0; }
+.tip-text { font-size: 12px; color: #7a5a00; font-weight: 500; line-height: 1.5; }
+
+/* ── NAV TIP CARD ── */
+.day-tip-card { background: linear-gradient(135deg, var(--sage), var(--sage-light)); border-radius: var(--card-radius); padding: 20px; margin-top: 16px; color: white; display: flex; gap: 12px; align-items: flex-start; }
+.day-tip-icon { font-size: 24px; flex-shrink: 0; }
+.day-tip-text { font-size: 13px; line-height: 1.5; font-weight: 500; opacity: 0.95; }
+.day-tip-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; margin-bottom: 4px; }
+
+/* ── COMPLETION MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal-box { background: var(--white); border-radius: 24px; max-width: 480px; width: 100%; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); }
+.modal-emoji { font-size: 64px; margin-bottom: 16px; }
+.modal-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; color: var(--dark); margin-bottom: 12px; }
+.modal-text { font-size: 14px; color: var(--text-light); line-height: 1.7; margin-bottom: 24px; }
+.modal-brand { font-weight: 800; color: var(--sage); }
+.modal-btn { background: var(--sage); color: white; border: none; padding: 14px 36px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+.modal-btn:hover { background: var(--sage-light); transform: translateY(-2px); }
+
+/* ── COLOR CLASSES ── */
+.t-desayuno { background: #fff8e8; }
+.tag-desayuno { background: #fff0c8; color: #b37600; }
+.t-snack { background: #e8f4ed; }
+.tag-snack { background: #d0ecd8; color: #2a6644; }
+.t-almuerzo { background: #e8f0ff; }
+.tag-almuerzo { background: #d0dfff; color: #2244b3; }
+.t-cena { background: #f0e8f4; }
+.tag-cena { background: #e0d0ec; color: #6b2c9a; }
+
+.bar-prot { background: linear-gradient(90deg, #f5a623, #f0c060); }
+.bar-carb { background: linear-gradient(90deg, #3d9bd4, #64b8e8); }
+.bar-gras { background: linear-gradient(90deg, #e05c3a, #f08060); }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--text-light); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-msg { font-weight: 600; font-size: 15px; color: var(--text); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .plan-grid { grid-template-columns: 1fr; }
+  .macros-grid { grid-template-columns: repeat(3,1fr); }
+  .time-diff-row { grid-template-columns: 1fr 1fr; }
+  .daily-header { flex-direction: column; align-items: flex-start; }
+  .month-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .month-bar-wrap { width: 100%; }
+  .week-tabs { overflow-x: auto; }
+  .week-tab { min-width: 70px; }
+}
+
+/* ── UTIL ── */
+.hidden { display: none !important; }
+.animate-in { animation: fadeUp 0.3s ease; }
+@keyframes fadeUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+.back-btn{
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 9999;
+    background: var(--sage);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(22,163,74,.25);
+    transition: all .2s ease;
+}
+.back-btn:hover{
+    background: var(--mid);
+    transform: translateY(-2px);
+}
+
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="app-logo">Safe<span>Bite</span> Plus</div>
+    <div class="app-sub">Plan Nutricional Personalizado</div>
+    <span class="huevo-badge">🥚❌ 100% Sin Huevo</span>
+  </header>
+
+<button class="back-btn" onclick="goBackToIndex()">
+    ← Regresar
+</button>
+  <!-- MONTHLY PROGRESS -->
+  <div class="month-header" id="month-progress-bar" style="display:none">
+    <div>
+      <div class="month-label" id="month-label-text">Mes 1 — Plan de 4 Semanas</div>
+      <div style="font-size:12px;color:var(--text-light);margin-top:4px" id="month-detail-text">Selecciona un día para comenzar</div>
+    </div>
+    <div class="month-progress">
+      <div class="month-bar-wrap"><div class="month-bar-fill" id="month-bar-fill" style="width:0%"></div></div>
+      <div class="month-stat" id="month-stat-text">0 / 28 días completados</div>
+    </div>
+  </div>
+
+  <!-- PLAN SELECTION -->
+  <div class="section-title">① Selecciona tu plan según tu IMC</div>
+  <div class="plan-grid" id="plan-grid"></div>
+
+  <!-- WEEK / DAY NAV -->
+  <div class="nav-section hidden" id="nav-section">
+    <div class="week-tabs" id="week-tabs"></div>
+    <div class="day-row" id="day-row"></div>
+  </div>
+
+  <!-- DAILY PANEL -->
+  <div class="daily-panel" id="daily-panel">
+    <div class="daily-header">
+      <div class="daily-title" id="daily-title">Selecciona un día</div>
+      <div class="daily-macros" id="daily-macros"></div>
+    </div>
+    <div class="day-progress-bar"><div class="day-progress-fill" id="day-progress-fill" style="width:0%"></div></div>
+    <div class="meals-list" id="meals-list"></div>
+    <div class="day-tip-card hidden" id="day-tip-card">
+      <div class="day-tip-icon">💡</div>
+      <div><div class="day-tip-label">Tip del día</div><div class="day-tip-text" id="day-tip-text"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- COMPLETION MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-emoji">🏆</div>
+    <div class="modal-title">¡Día Completado!</div>
+    <div class="modal-text">¡Excelente trabajo! Has completado todas las comidas del día. <span class="modal-brand">SafeBite Plus</span> está orgulloso de tu constancia. Sigue así y transformarás tu salud.</div>
+    <button class="modal-btn" onclick="closeModal()">¡A seguir! 💪</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA — Plan Detallado (5 comidas diarias, 100% Sin Huevo)
+// ═══════════════════════════════════════════════════════════════
+
+const PLAN_META = {
+  sobrepeso: { label: 'Déficit Calórico', emoji: '📉', range: 'IMC > 25', icon: '⬇️ Pérdida de peso', kcalRange: '1400–1600 kcal' },
+  normal:    { label: 'Mantenimiento',    emoji: '✨', range: 'IMC 18.5–24.9', icon: '⚖️ Balance calórico', kcalRange: '1800–2000 kcal' },
+  bajo:      { label: 'Ganancia Muscular',emoji: '💪', range: 'IMC < 18.5', icon: '⬆️ Superávit calórico', kcalRange: '2200–2600 kcal' }
+};
+
+const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const WEEKS = ['Semana 1','Semana 2','Semana 3','Semana 4'];
+
+function buildMeal(type, name, desc, cal, protein, carbs, fat, ingredients, steps, tip, benefits, time, diff) {
+  return { type, name, desc, cal, protein, carbs, fat, ingredients, steps, tip, benefits, time: time||'15 min', diff: diff||'Fácil' };
+}
+
+const MEALS = {
+  // ═══ SOBREPESO (Déficit Calórico, SIN HUEVO) ═══
+  sobrepeso: {
+    w1: [
+      { day:'Lunes', tip:'💧 Bebe un vaso de agua 15 minutos antes de cada comida para mejorar la sensación de saciedad y la digestión.', totalKcal:1450, macros:{p:115,c:140,g:45},
+        meals:[
+          buildMeal('Desayuno','Tostada Integral con Aguacate y Garbanzos Macerados','Desayuno proteico vegetal sin huevo para arrancar el día','280 kcal',15,35,10,
+            ['1 rebanada gruesa de pan integral 100%','1/4 de aguacate maduro','3 cucharadas de garbanzos cocidos','Pizca de sal, pimienta negra y pimentón ahumado','Gotas de limón'],
+            [{t:'Preparar pan',b:'Tuesta la rebanada de pan hasta que quede crujiente.'},{t:'Hacer puré de aguacate',b:'Aplasta el aguacate con un tenedor, añade unas gotas de limón, sal y pimienta. Úntalo sobre la tostada.'},{t:'Macerar garbanzos',b:'Aplasta ligeramente los garbanzos con un tenedor y mézclalos con pimentón ahumado y sal.'},{t:'Servir',b:'Coloca los garbanzos sobre la tostada con aguacate.'}],
+            'Los garbanzos son un excelente reemplazo del huevo para aportar proteína y textura en los desayunos.',
+            ['Proteína de alto valor biológico vegetal','Las grasas del aguacate protegen el corazón']),
+          
+          buildMeal('Snack AM','Manzana Verde con Almendras','Snack crujiente rico en fibra y grasas saludables','150 kcal',4,20,8,
+            ['1 manzana verde mediana','10 almendras crudas o tostadas (sin sal)'],
+            [{t:'Lavar y cortar',b:'Lava bien la manzana y córtala en gajos manteniendo la piel.'},{t:'Consumir',b:'Come un trozo de manzana alternando con una almendra para equilibrar sabores y mejorar la saciedad.'}],
+            'Mantén la piel de la manzana, ahí se concentra la mayor parte de su fibra pectina.',
+            ['Regula los niveles de azúcar en la sangre','Aporta energía sostenida hasta el almuerzo']),
+          
+          buildMeal('Almuerzo','Salmón a la Plancha con Quinoa','Plato principal con Omega-3 y carbohidratos complejos','450 kcal',35,40,15,
+            ['150g de filete de salmón fresco','1/2 taza de quinoa cocida','1 taza de espárragos trigueros','1 cdta de aceite de oliva','Ajo en polvo, eneldo, sal y pimienta'],
+            [{t:'Sazonar',b:'Seca el salmón y condimenta con sal, pimienta, ajo en polvo y eneldo.'},{t:'Cocinar vegetales',b:'Saltea los espárragos en una sartén con media cucharadita de aceite de oliva por 5 minutos.'},{t:'Cocinar salmón',b:'En la misma sartén a fuego medio-alto, cocina el salmón 4 minutos por lado.'},{t:'Emplatar',b:'Sirve el salmón junto a la quinoa caliente y los espárragos.'}],
+            'Para saber si el salmón está listo, presiona el centro con un tenedor; debe separarse en lascas fácilmente.',
+            ['Rico en Omega-3 para desinflamar el cuerpo','La quinoa es un pseudocereal libre de gluten natural']),
+          
+          buildMeal('Snack PM','Yogur Vegetal con Chía','Alternativa cremosa y probiótica 100% libre de lácteos','170 kcal',3,15,10,
+            ['120g de yogur de coco o soja natural (sin azúcar)','1 cdta de semillas de chía','5 arándanos frescos'],
+            [{t:'Mezclar',b:'En un bol pequeño, vierte el yogur y espolvorea las semillas de chía.'},{t:'Reposar',b:'Deja reposar 5 minutos para que la chía se hidrate ligeramente.'},{t:'Decorar',b:'Añade los arándanos por encima y disfruta frío.'}],
+            'Asegúrate de leer la etiqueta del yogur para confirmar que no tiene azúcares añadidos.',
+            ['Aporta probióticos beneficiosos para la flora intestinal','Las semillas de chía suman Omega-3 vegetal']),
+          
+          buildMeal('Cena','Crema de Calabaza Ligera','Cena reconfortante, ligera y súper digestiva','400 kcal',55,33,2,
+            ['2 tazas de calabaza en cubos','1/2 cebolla blanca','1 diente de ajo','2 tazas de caldo de vegetales o pollo (natural)','1 cda de semillas de calabaza tostadas','Pizca de nuez moscada y sal'],
+            [{t:'Sofrito',b:'En una olla, sofríe la cebolla y el ajo finamente picados con un chorrito mínimo de agua (para no usar aceite).'},{t:'Cocción',b:'Añade la calabaza y el caldo. Deja hervir a fuego medio por 15-20 minutos hasta que la calabaza esté muy suave.'},{t:'Licuar',b:'Procesa todo en licuadora o con un procesador de inmersión hasta obtener una textura de crema sedosa.'},{t:'Servir',b:'Sirve caliente, espolvorea nuez moscada y decora con las semillas de calabaza.'}],
+            'Al no usar cremas añadidas, esta sopa es extremadamente baja en calorías pero mantiene una textura suave.',
+            ['La calabaza es rica en betacarotenos (Vitamina A)','Cena de muy fácil digestión para un mejor descanso'])
+        ]
+      },
+      { day:'Martes', tip:'🥑 Usa semillas de chía o lino hidratadas en agua como sustituto del huevo para ligar masas o hamburguesas caseras.', totalKcal:1420, macros:{p:120,c:135,g:42},
+        meals:[
+          buildMeal('Desayuno','Batido Proteico de Fresa','Desayuno rápido, denso en nutrientes y sin huevo','260 kcal',25,25,5,
+            ['1 scoop de proteína en polvo (aislada o vegetal)','1 taza de leche de almendras sin azúcar','5 fresas frescas o congeladas','1 cdta de semillas de lino molidas'],
+            [{t:'Preparar',b:'Lava las fresas y quítales el tallo. Si usas congeladas, la textura será tipo frappé.'},{t:'Licuar',b:'Coloca la leche de almendras, la proteína, las fresas y el lino en la licuadora.'},{t:'Procesar',b:'Licúa a máxima velocidad por 40 segundos hasta que no queden grumos.'}],
+            'Usa leche de almendras bien fría para un sabor más refrescante.',
+            ['Excelente recuperación muscular matutina','Aporte de antioxidantes gracias a las fresas']),
+          
+          buildMeal('Snack AM','Naranja Entera y Nueces','Vitamina C y grasas buenas en su forma más pura','160 kcal',5,20,8,
+            ['1 naranja mediana','5 mitades de nuez pelada'],
+            [{t:'Pelar',b:'Pela la naranja intentando conservar la parte blanca (albedo) que recubre los gajos, ya que es pura fibra.'},{t:'Servir',b:'Acompaña con las nueces enteras.'}],
+            'Comer la fruta entera es siempre mejor que en jugo para no provocar picos de insulina.',
+            ['La Vitamina C mejora la absorción de nutrientes','Las nueces son excelentes para la salud cerebral']),
+          
+          buildMeal('Almuerzo','Seco de Pollo con Arroz Integral','Adaptación saludable y magra del plato tradicional','410 kcal',38,45,10,
+            ['150g de pechuga o contramuslo de pollo sin piel','1/2 taza de arroz integral cocido','1 tomate maduro','1/2 cebolla paiteña','Cilantro fresco, comino y ajo','Ensalada verde (lechuga y rábano) con limón'],
+            [{t:'Licuar base',b:'Licúa el tomate, la cebolla, el ajo, comino y un poco de cilantro con un chorrito de agua para hacer la salsa.'},{t:'Guisar',b:'Coloca el pollo en una olla, vierte la salsa encima y cocina a fuego medio con la olla tapada por 25 minutos.'},{t:'Guarnición',b:'Prepara una ensalada rápida de lechuga y rábano finamente picado, aderezada con limón y sal.'},{t:'Servir',b:'Sirve el pollo bañado en su jugo natural junto al arroz integral y la ensalada fresca.'}],
+            'Al no freír el pollo y cocinarlo en su propio jugo con vegetales, reduces drásticamente las calorías.',
+            ['Comida completa con los 3 macronutrientes','El rábano crudo activa enzimas digestivas']),
+          
+          buildMeal('Snack PM','Edamames al Vapor','Snack salado, verde y alto en proteína vegetal','100 kcal',10,8,3,
+            ['1/2 taza de edamames (vainas de soja verde)','Pizca de sal marina gruesa'],
+            [{t:'Cocinar',b:'Hierve o cocina al vapor las vainas de edamame durante 5 minutos hasta que estén tiernas pero firmes.'},{t:'Sazonar',b:'Escurre bien y espolvorea con sal gruesa mientras están calientes.'}],
+            'Solo se comen los granos de adentro, extrae la soja con los dientes y desecha la vaina.',
+            ['Proteína vegetal completa','Ayuda a controlar los antojos de media tarde por su textura']),
+          
+          buildMeal('Cena','Revuelto de Tofu con Champiñones y Espárragos','Cena rápida, sin huevo y muy saciante','490 kcal',42,37,16,
+            ['150g de Tofu firme desmenuzado','1/2 taza de champiñones laminados','5 espárragos picados','1 cdta de aceite de oliva','Pizca de cúrcuma (para el color amarillo), sal negra (kala namak) y pimienta'],
+            [{t:'Saltear',b:'En una sartén con el aceite, saltea los espárragos y champiñones por 4 minutos hasta que doren.'},{t:'Añadir Tofu',b:'Añade el tofu desmenuzado con las manos a la sartén simulando huevos revueltos.'},{t:'Cocinar',b:'Agrega la cúrcuma, sal y pimienta. Saltea todo por 5 minutos más integrando los sabores.'}],
+            'La sal negra o "kala namak" tiene un sabor y aroma muy similar al huevo, ideal para usar con el tofu.',
+            ['El tofu es una proteína vegetal completa con textura excelente','Bajo en carbohidratos para no acumular reservas en la noche'])
+        ]
+      },
+      { day:'Miércoles', tip:'🧅 El rábano y la cebolla cruda activan tu metabolismo y dan muchísimo sabor sin añadir grasas.', totalKcal:1440, macros:{p:118,c:148,g:40},
+        meals:[
+          buildMeal('Desayuno','Tortilla de Maíz con Pollo','Desayuno estilo latino libre de huevo','310 kcal',24,35,8,
+            ['1 tortilla de maíz (100% maíz, revisar etiquetas)','40g de pechuga de pollo desmechada','1/4 de tomate picado en cubitos','Hojas de cilantro fresco'],
+            [{t:'Calentar',b:'Calienta la tortilla en un comal o sartén seca hasta que esté suave y flexible.'},{t:'Rellenar',b:'Coloca el pollo desmechado caliente (puede ser sobrante del día anterior) sobre la tortilla.'},{t:'Decorar',b:'Añade el tomate fresco picado y el cilantro. Enrolla o dobla por la mitad.'}],
+            'Asegúrate de que la tortilla sea de maíz nixtamalizado puro, sin trazas.',
+            ['Energía rápida gracias a los carbohidratos del maíz','Bajo índice glucémico en comparación con el pan blanco']),
+          buildMeal('Snack AM','Papaya Fresca picada','Mejora tu digestión a media mañana','80 kcal',1,18,0,
+            ['1 taza colmada de papaya fresca picada en cubos'],
+            [{t:'Preparar',b:'Pela la papaya, retira las semillas y pica la pulpa en cubos medianos. Mantenla refrigerada.'}],
+            'Puedes exprimir medio limón encima para realzar su dulzor natural.',
+            ['Contiene papaína, una enzima que facilita la digestión de proteínas','Excelente aporte de Vitamina A y agua']),
+          buildMeal('Almuerzo','Ternera Salteada con Brócoli','Potente inyección de hierro y vegetales verdes','420 kcal',38,40,12,
+            ['150g de carne magra de ternera en tiras','1.5 tazas de arbolitos de brócoli','2 cdas soperas de arroz blanco cocido','1 cda de salsa de soja (sin gluten/tamari)','Ajo picado y jengibre rallado'],
+            [{t:'Marinar',b:'Mezcla la carne con la soja, ajo y jengibre. Deja reposar 10 min.'},{t:'Blanquear brócoli',b:'Pasa el brócoli por agua hirviendo 3 minutos. Debe quedar brillante y crujiente.'},{t:'Saltear',b:'En un wok o sartén muy caliente, saltea la carne rápidamente por 4 minutos. Añade el brócoli, revuelve 1 minuto más y sirve con las dos cucharadas de arroz.'}],
+            'El secreto del wok es el fuego alto y cocinar los vegetales el menor tiempo posible.',
+            ['Alta concentración de hierro hemo','El brócoli contiene sulforafano, un compuesto protector celular']),
+          buildMeal('Snack PM','Galletas de Arroz con Pavo','Snack salado y súper ligero para calmar la ansiedad','130 kcal',12,16,2,
+            ['2 galletas de arroz inflado (sin sabor)','2 rebanadas de pechuga de pavo ahumada o cocida'],
+            [{t:'Armar',b:'Coloca una rebanada de pavo doblada sobre cada galleta de arroz. Consume inmediatamente para que la galleta no se ablande.'}],
+            'Revisa los ingredientes del fiambre de pavo: algunos contienen aditivos innecesarios.',
+            ['Crujiente y satisfactorio con muy pocas calorías','Aporte extra de proteína a media tarde']),
+          buildMeal('Cena','Ensalada de Garbanzos y Atún','Cena fresca, sin cocina y lista en 5 minutos','500 kcal',43,45,18,
+            ['1/2 taza de garbanzos cocidos (lavados si son de bote)','1 lata de atún al agua o natural','1/2 pepino picado en cubos','1/4 de cebolla morada picada fina','Zumo de limón, sal y pimienta'],
+            [{t:'Mezclar',b:'En un bol hondo, combina los garbanzos escurridos, el atún desmenuzado, el pepino y la cebolla.'},{t:'Aderezar',b:'Baña todo con abundante zumo de limón, sal y pimienta al gusto. Mezcla bien.'}],
+            'Si usas garbanzos de lata, enjuágalos muy bien bajo el grifo hasta que dejen de soltar espuma para evitar gases.',
+            ['Los garbanzos son prebióticos que alimentan tu flora intestinal','El atún aporta proteína magra libre de grasa'])
+        ]
+      },
+      { day:'Jueves', tip:'🌶️ Usa especias como el comino o pimentón para dar sabor a las legumbres sin necesidad de usar aceites o sofritos pesados.', totalKcal:1460, macros:{p:114,c:150,g:44},
+        meals:[
+          buildMeal('Desayuno','Overnight Oats de Arándanos','Desayuno preparado la noche anterior, full fibra','300 kcal',12,48,8,
+            ['1/3 taza de avena en hojuelas','3/4 taza de leche de almendras sin azúcar','1 cda de semillas de chía','1/2 taza de arándanos','Canela en polvo'],
+            [{t:'Mezclar',b:'La noche anterior, mezcla la avena, la leche de almendras, la chía y la canela en un frasco de vidrio.'},{t:'Refrigerar',b:'Tapa el frasco y déjalo en la nevera toda la noche.'},{t:'Servir',b:'A la mañana siguiente, revuelve bien y añade los arándanos frescos encima.'}],
+            'Puedes calentarlo 1 minuto en el microondas si prefieres desayunar caliente.',
+            ['Fibra soluble que reduce el colesterol','Los arándanos previenen el envejecimiento celular']),
+          buildMeal('Snack AM','Bastones de Zanahoria','El snack masticable perfecto para engañar el estómago','60 kcal',1,14,0,
+            ['2 zanahorias medianas peladas y cortadas en bastones','Limón y chile en polvo (opcional)'],
+            [{t:'Preparar',b:'Pela las zanahorias y córtalas a lo largo. Añade limón si te gusta el contraste ácido.'}],
+            'Masticar vegetales crudos y crujientes envía señales de saciedad tempranas al cerebro.',
+            ['Ricas en Betacaroteno para la salud visual y de la piel','Muy bajas en calorías y altas en volumen']),
+          buildMeal('Almuerzo','Lentejas Estofadas con Vegetales','Guiso tradicional reconfortante y 100% plant-based','420 kcal',24,65,6,
+            ['3/4 taza de lentejas (pesadas cocidas)','1 zanahoria grande en rodajas','1 taza de espinacas frescas','1/4 cebolla y 1 ajo finamente picados','Comino, pimentón dulce, sal y pimienta'],
+            [{t:'Base',b:'Haz un sofrito ligero con la cebolla, el ajo y las especias con una cucharadita de agua o caldo.'},{t:'Hervir',b:'Añade las lentejas (previamente remojadas si son crudas, o directas si son de bote), la zanahoria y cubre con agua. Cocina hasta que espese.'},{t:'Finalizar',b:'Apaga el fuego, añade las espinacas, revuelve y tapa. El calor residual las cocinará en 1 minuto.'}],
+            'Añadir unas gotas de vinagre o limón al plato ya servido mejora enormemente la absorción del hierro vegetal.',
+            ['Excelente fuente de carbohidratos de absorción lenta','La espinaca complementa el perfil de vitaminas']),
+          buildMeal('Snack PM','Rollitos de Pavo y Pepino','Snack proteico, fresco y rehidratante','90 kcal',14,3,2,
+            ['3 rebanadas de jamón de pavo cocido','3 tiras largas de pepino sin semillas'],
+            [{t:'Armar',b:'Coloca una tira de pepino sobre una rebanada de pavo y enróllala como un cilindro. Repite con las demás.'}],
+            'El pepino aporta agua y crujencia, haciendo que el fiambre no se sienta tan seco.',
+            ['Bajo en carbohidratos, ideal para la tarde','Alto en agua para mantener la hidratación']),
+          buildMeal('Cena','Merluza al Vapor con Calabacín','Cena ultraligera, digestiva y baja en grasas','290 kcal',32,15,8,
+            ['150g de filete de merluza (o pescado blanco similar)','1 calabacín mediano cortado en medias lunas','Zumo de limón, perejil picado, sal'],
+            [{t:'Vapor',b:'Coloca el filete de pescado sazonado en una vaporera (o envuelto en papel aluminio en el horno) por 12 minutos.'},{t:'Plancha',b:'Mientras, pasa las rodajas de calabacín por una sartén muy caliente vuelta y vuelta hasta que doren ligeramente.'},{t:'Servir',b:'Emplata el pescado rociado con limón y perejil, acompañado del calabacín.'}],
+            'El pescado blanco es la proteína de más rápida digestión, perfecta para cenar e ir a dormir ligero.',
+            ['Cero carbohidratos pesados','El calabacín aporta potasio y volumen con mínimas calorías'])
+        ]
+      },
+      { day:'Viernes', tip:'🥬 La lechuga es un excelente sustituto de las tortillas para reducir carbohidratos sin perder el formato "wrap".', totalKcal:1480, macros:{p:125,c:130,g:45},
+        meals:[
+          buildMeal('Desayuno','Panqueque de Avena y Plátano (Sin Huevo)','Desayuno dulce y fitness sin huevo','280 kcal',15,48,5,
+            ['1 cucharada de semillas de lino o chía molidas + 3 cdas de agua (Huevo de lino)','1/2 banano maduro','4 cdas de avena en hojuelas o harina de avena','Chorro de leche vegetal y canela'],
+            [{t:'Sustituto',b:'Mezcla el lino con agua y deja reposar 5 min hasta que se forme un gel pegajoso.'},{t:'Masa',b:'Licúa o aplasta bien el banano y mézclalo con el "huevo" de lino, la avena, canela y un poquito de leche hasta tener una pasta espesa.'},{t:'Cocinar',b:'Vierte en una sartén antiadherente a fuego medio-bajo. Cocina 3 minutos de un lado hasta que salgan burbujas, voltea y cocina 2 minutos más.'}],
+            'El "huevo de lino" liga las masas veganas o sin huevo a la perfección.',
+            ['Desayuno súper saciante que evita picoteos','La avena aporta energía de liberación sostenida']),
+          buildMeal('Snack AM','Kiwi y Nueces','Combinación ácida y crujiente para despertar el paladar','140 kcal',4,18,6,
+            ['1 kiwi grande pelado y en rodajas','5 mitades de nueces'],
+            [{t:'Servir',b:'Corta el kiwi y sírvelo en un plato pequeño acompañado de las nueces.'}],
+            'El kiwi es una de las frutas con más vitamina C por gramo, superior incluso a la naranja.',
+            ['Mejora el tránsito intestinal','Las nueces aportan grasas poliinsaturadas']),
+          buildMeal('Almuerzo','Pasta de Garbanzos con Pomodoro','Versión italiana sin huevo y alta en proteína','440 kcal',28,60,10,
+            ['60g de pasta de harina de garbanzos (peso en seco)','1 taza de salsa de tomate natural (triturado, sin azúcar)','Hojas de albahaca fresca','1 cdta de aceite de oliva, orégano, ajo picado'],
+            [{t:'Cocinar Pasta',b:'Hierve la pasta de garbanzos siguiendo las instrucciones del empaque (suele tardar menos que la tradicional, unos 7 min).'},{t:'Salsa',b:'En una sartén, dora el ajo en el aceite de oliva, vierte el tomate triturado y el orégano. Reduce por 5 min.'},{t:'Unir',b:'Mezcla la pasta escurrida con la salsa caliente y corona con albahaca fresca.'}],
+            'La pasta de legumbres tiene hasta 3 veces más proteína y fibra que la pasta de trigo normal.',
+            ['No produce pesadez post-almuerzo','Libre de harinas refinadas']),
+          buildMeal('Snack PM','Gelatina Light con Fresas','Snack refrescante para los antojos dulces de la tarde','40 kcal',2,8,0,
+            ['1 porción de gelatina vegetal/agar-agar sin azúcar','3 fresas picadas'],
+            [{t:'Preparar',b:'Prepara la gelatina según las instrucciones y antes de que cuaje en la nevera, agrégale las fresas picadas.'}],
+            'Ideal tener varias porciones preparadas en la nevera para cuando ataca la ansiedad por dulce.',
+            ['Cero grasas y casi cero carbohidratos','Sensación de comer postre sin culpa']),
+          buildMeal('Cena','Fajitas de Pollo en Hojas de Lechuga','Versión low-carb del clásico mexicano','380 kcal',38,15,16,
+            ['150g de pechuga de pollo en tiras','1/2 pimiento rojo y 1/2 verde en tiras','1/4 de cebolla en plumas','3 hojas grandes y firmes de lechuga romana o repollada','Especias para fajitas (comino, pimentón, orégano)'],
+            [{t:'Saltear',b:'En una sartén caliente, dora las tiras de pollo sazonadas con las especias. Retira y reserva.'},{t:'Vegetales',b:'En la misma sartén, saltea los pimientos y la cebolla hasta que estén tiernos pero crujientes. Regresa el pollo y mezcla.'},{t:'Armar',b:'Usa las hojas de lechuga lavadas y secas como si fueran las tortillas de las fajitas. Rellena y come con las manos.'}],
+            'Asegúrate de secar muy bien las hojas de lechuga para que no agüen el relleno.',
+            ['Cena divertida, saciante y visualmente abundante','El pimiento rojo aporta antioxidantes y color'])
+        ]
+      },
+      { day:'Sábado', tip:'🍊 Prioriza siempre la fruta entera sobre los jugos; la fibra ayuda a controlar la insulina y te mantiene lleno.', totalKcal:1520, macros:{p:118,c:145,g:52},
+        meals:[
+          buildMeal('Desayuno','Garbanzos Salteados con Espinacas','Alternativa proteica al revuelto clásico, 100% libre de huevo','250 kcal',18,25,10,
+            ['1/2 taza de garbanzos cocidos y bien escurridos','2 tazas generosas de espinacas frescas','1 rebanada de pan tostado integral','Pizca de comino, sal y pimienta'],
+            [{t:'Espinacas',b:'Pon las espinacas en una sartén caliente; en 1 minuto reducirán su tamaño a la décima parte.'},{t:'Garbanzos',b:'Añade los garbanzos a la misma sartén con las especias y saltéalos por un par de minutos hasta que integren sabores.'},{t:'Servir',b:'Acompaña con la rebanada de pan tostado crujiente.'}],
+            'Los garbanzos salteados en lugar de huevos logran un perfil nutricional excelente para empezar el día con fibra.',
+            ['Aporte inmenso de volumen visual (engaña al cerebro)','Rico en hierro y vitaminas del complejo B']),
+          buildMeal('Snack AM','Mandarina y Semillas de Calabaza','Snack fácil de llevar a cualquier lado el fin de semana','130 kcal',4,15,7,
+            ['1 mandarina grande','1 cucharada de semillas de calabaza (pepitas) peladas'],
+            [{t:'Servir',b:'Pela y come los gajos de mandarina alternando con un puñadito de semillas.'}],
+            'Las semillas de calabaza son ricas en zinc, un mineral esencial para el sistema inmune.',
+            ['Fácil digestión y frescura cítrica','Grasas saludables que protegen el corazón']),
+          buildMeal('Almuerzo','Arroz Caldoso con Mariscos','Plato de fin de semana festivo y bajo en grasas','550 kcal',45,65,8,
+            ['150g de mezcla de mariscos limpios (camarones, calamares, mejillones)','1/2 taza de arroz blanco (peso en crudo)','Pimientos picados, tomate rallado y ajo','Caldo de pescado natural y azafrán o colorante natural'],
+            [{t:'Sofrito',b:'Dora el ajo, los pimientos y el tomate en una paellera u olla ancha.'},{t:'Arroz y Caldo',b:'Añade el arroz, revuelve y vierte el caldo de pescado caliente (proporción 3 partes de agua por 1 de arroz para que quede caldoso).'},{t:'Mariscos',b:'A falta de 5 minutos para que el arroz esté tierno, añade los mariscos (se cocinan muy rápido). Reposa 3 min y sirve.'}],
+            'No sobrecocines los mariscos o quedarán con textura gomosa.',
+            ['Comida de trampa limpia (cheat clean)','Los mariscos son proteína casi pura y contienen yodo']),
+          buildMeal('Snack PM','Chocolate Oscuro y Almendras','Un capricho antioxidante para la tarde de sábado','140 kcal',3,10,10,
+            ['1 onza (aprox 15g) de chocolate oscuro 70% cacao o superior','6 almendras enteras'],
+            [{t:'Degustar',b:'Deja que el chocolate se derrita lentamente en tu boca, no lo mastiques rápido. Acompaña con las almendras.'}],
+            'El verdadero chocolate oscuro a partir del 70% no suele usar huevo ni leche en su composición, siempre revisa.',
+            ['El cacao es un potente antidepresivo natural','Sacia las ganas de dulce de forma saludable']),
+          buildMeal('Cena','Hamburguesa al Plato (Sin Pan)','Sabor a comida rápida pero adaptada a tu objetivo','450 kcal',44,15,22,
+            ['150g de carne molida magra (res o pollo) formada en hamburguesa (usa lino hidratado para amasar)','Rodajas gruesas de tomate y cebolla morada','Hojas de lechuga grandes','1 cdta de mostaza natural'],
+            [{t:'Cocinar carne',b:'Cocina la hamburguesa a la plancha o parrilla a tu término preferido.'},{t:'Montar',b:'En un plato, haz una cama con la lechuga, coloca la carne caliente encima, añade la cebolla, el tomate y un toque de mostaza.'}],
+            'Para que la carne de hamburguesa no se deshaga al omitir el huevo, amasa bien la carne molida fría durante 5 minutos y usa chía/lino.',
+            ['Proteína de alta calidad','Cero carbohidratos refinados, ideal para la cena'])
+        ]
+      },
+      { day:'Domingo', tip:'🍫 El chocolate muy amargo quita la ansiedad de dulce con muy pocas calorías. ¡Disfruta el domingo!', totalKcal:1470, macros:{p:112,c:155,g:42},
+        meals:[
+          buildMeal('Desayuno','Bowl de Frutas con Semillas','Desayuno dulce, colorido y lleno de vitaminas','280 kcal',8,45,10,
+            ['1 taza de papaya y piña picadas','1 cdta de semillas de cáñamo (hemp)','1 cdta de semillas de chía','1/2 taza de leche de coco o almendras'],
+            [{t:'Servir',b:'Coloca las frutas picadas en un tazón profundo.'},{t:'Bañar',b:'Vierte la leche vegetal fría por encima y espolvorea las semillas de manera decorativa.'}],
+            'Este desayuno es ideal si tienes planes de hacer deporte o caminar el domingo por la mañana.',
+            ['Hidratación profunda tras el ayuno nocturno','Alta carga de antioxidantes y enzimas digestivas']),
+          buildMeal('Snack AM','Galletas de Arroz con Aguacate','Crocante y suave, el balance perfecto','140 kcal',2,15,8,
+            ['2 galletas de arroz inflado','1/4 de aguacate pequeño','Pizca de sal y hojuelas de chile rojo (opcional)'],
+            [{t:'Untar',b:'Aplasta el aguacate y úntalo sobre las galletas justo antes de comer para que no se ablanden.'}],
+            'Si te sobra aguacate, guárdalo con su semilla y envuelto en film para que no se oxide.',
+            ['Grasas saludables para el cerebro','Snack sin azúcar y muy saciante']),
+          buildMeal('Almuerzo','Lomo de Cerdo Magro con Puré Rústico','Almuerzo dominical en familia, versión saludable','490 kcal',42,48,12,
+            ['150g de lomo de cerdo (la parte más magra)','1 papa mediana','Zanahorias y vainitas (judías verdes) al vapor','Sal, ajo, romero'],
+            [{t:'Puré rústico',b:'Hierve la papa con piel. Al estar lista, aplástala con un tenedor rústicamente añadiendo un chorrito del agua de cocción.'},{t:'Carne',b:'Cocina el lomo de cerdo a la plancha condimentado con ajo y romero fresco.'},{t:'Servir',b:'Acompaña la carne con el puré y los vegetales al vapor.'}],
+            'El lomo de cerdo es una carne magra excelente, casi con la misma poca grasa que la pechuga de pollo.',
+            ['Plato reconfortante y familiar','Cero huevo ni empanizados procesados']),
+          buildMeal('Snack PM','Puñado de Frutos Secos Mixtos','Energía rápida para la tarde de domingo','160 kcal',5,8,12,
+            ['20g de mezcla de nueces, almendras y marañones (sin sal)'],
+            [{t:'Porcionar',b:'Mide los 20 gramos (aproximadamente un puñado cerrado) y consúmelos lentamente.'}],
+            'No comas directo de la bolsa grande, es muy fácil pasarse de calorías con los frutos secos.',
+            ['Grasas protectoras cardiovasculares','Minerales esenciales como magnesio y zinc']),
+          buildMeal('Cena','Sopa Ligera de Fideos de Calabacín y Pollo','Cena reconfortante, caliente y sin pastas','400 kcal',35,15,10,
+            ['Caldo de pollo casero desgrasado (2 tazas)','1 calabacín mediano cortado en tiras o espirales (zoodles)','80g de pollo desmenuzado (sobrante del caldo)','1/4 de aguacate en cubitos'],
+            [{t:'Zoodles',b:'Corta el calabacín en forma de fideos usando un espiralizador o cuchillo.'},{t:'Calentar',b:'Lleva el caldo de pollo a ebullición. Apaga el fuego, añade los fideos de calabacín y el pollo desmenuzado. Tapa 2 min (el calabacín se cocina con el calor residual).'},{t:'Servir',b:'Sirve en un tazón profundo y corona con el aguacate fresco picado.'}],
+            'Evita hervir el calabacín para que mantenga textura de "fideo al dente" y no se vuelva puré.',
+            ['Cena ultra hidratante y fácil de digerir','Aporta calor y confort para preparar el cuerpo para dormir'])
+        ]
+      }
+    ]
+  }
+};
+
+// Generar semanas 2-4 como clones funcionales de la semana 1
+function generateWeekData(baseWeek, weekNum) {
+  return baseWeek.map(dayData => ({
+    ...dayData,
+    tip: `Semana ${weekNum} — ${dayData.tip}`
+  }));
+}
+
+MEALS.sobrepeso.w2 = generateWeekData(MEALS.sobrepeso.w1, 2);
+MEALS.sobrepeso.w3 = generateWeekData(MEALS.sobrepeso.w1, 3);
+MEALS.sobrepeso.w4 = generateWeekData(MEALS.sobrepeso.w1, 4);
+
+// Clones funcionales para resto de planes
+MEALS.normal = {
+  w1: generateWeekData(MEALS.sobrepeso.w1, 1), w2: generateWeekData(MEALS.sobrepeso.w1, 2),
+  w3: generateWeekData(MEALS.sobrepeso.w1, 3), w4: generateWeekData(MEALS.sobrepeso.w1, 4)
+};
+MEALS.bajo = {
+  w1: generateWeekData(MEALS.sobrepeso.w1, 1), w2: generateWeekData(MEALS.sobrepeso.w1, 2),
+  w3: generateWeekData(MEALS.sobrepeso.w1, 3), w4: generateWeekData(MEALS.sobrepeso.w1, 4)
+};
+
+// ═══════════════════════════════════════════════════════════════
+// STATE & LOCAL STORAGE (Llave cambiada a huevo)
+// ═══════════════════════════════════════════════════════════════
+// Vuelve a index.html conservando la sesión del usuario (pasada por URL al entrar aquí)
+function goBackToIndex() {
+    // Si esta pestaña fue abierta desde index.html (window.open), sincroniza
+    // el registro de comidas completadas directamente en esa pestaña antes de cerrar.
+    try {
+        if (window.opener && !window.opener.closed) {
+            const myLog = loadMealLog();
+            const openerLog = JSON.parse(window.opener.localStorage.getItem(MEAL_LOG_KEY) || '{}');
+            for (const date in myLog) {
+                if (!openerLog[date]) openerLog[date] = {};
+                Object.assign(openerLog[date], myLog[date]);
+            }
+            window.opener.localStorage.setItem(MEAL_LOG_KEY, JSON.stringify(openerLog));
+            if (typeof window.opener.refreshMealCalendar === 'function') {
+                window.opener.refreshMealCalendar();
+            }
+        }
+    } catch (e) {}
+
+    window.close();
+    // Si el navegador no permite cerrar (pestaña no abierta por script),
+    // regresamos como respaldo a la pestaña/pantalla de inicio, pasando
+    // también el registro de comidas por la URL.
+    setTimeout(() => {
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get('user');
+        let url = 'index.html';
+        const qp = new URLSearchParams();
+        if (email) {
+            qp.set('user', email);
+            const name = params.get('name');
+            const photo = params.get('photo');
+            if (name) qp.set('name', name);
+            if (photo) qp.set('photo', photo);
+        }
+        try {
+            qp.set('meallog', encodeURIComponent(JSON.stringify(loadMealLog())));
+        } catch (e) {}
+        const qs = qp.toString();
+        if (qs) url += '?' + qs;
+        window.location.href = url;
+    }, 300);
+}
+
+let state = { plan: null, week: 0, day: null };
+const LS_KEY = 'safebite_huevo_progress_v1';
+
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; }
+}
+function saveProgress(progress) {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(progress)); } catch {}
+}
+
+let progress = loadProgress();
+// ===== REGISTRO DE COMIDAS COMPLETADAS (para el calendario del index) =====
+const PAGE_ID = 'sin-huevo';
+const MEAL_LOG_KEY = 'safebite_meal_log';
+const START_DATE_KEY = 'safebite_huevo_startdate';
+
+function todayKey() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function getPlanStartDate() {
+  let saved = localStorage.getItem(START_DATE_KEY);
+  if (!saved) {
+    saved = todayKey();
+    localStorage.setItem(START_DATE_KEY, saved);
+  }
+  return saved;
+}
+
+function dayKey(weekIdx, dayIdx) {
+  const startStr = getPlanStartDate();
+  const [y, m, d] = startStr.split('-').map(Number);
+  const start = new Date(y, m - 1, d);
+  const offset = weekIdx * 7 + dayIdx;
+  const target = new Date(start);
+  target.setDate(start.getDate() + offset);
+  const yyyy = target.getFullYear();
+  const mm = String(target.getMonth() + 1).padStart(2, '0');
+  const dd = String(target.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function loadMealLog() {
+  try { return JSON.parse(localStorage.getItem(MEAL_LOG_KEY)) || {}; } catch { return {}; }
+}
+function saveMealLog(log) {
+  try { localStorage.setItem(MEAL_LOG_KEY, JSON.stringify(log)); } catch {}
+}
+function logMealCompletion(planId, doneCount, totalCount) {
+  const log = loadMealLog();
+  const key = dayKey(state.week, state.day);
+  if (!log[key]) log[key] = {};
+  log[key][planId] = { done: doneCount, total: totalCount };
+  saveMealLog(log);
+}
+
+
+function getCompletion(plan, weekIdx, dayIdx, mealIdx) {
+  return !!progress?.[plan]?.[weekIdx]?.[dayIdx]?.[mealIdx];
+}
+function setCompletion(plan, weekIdx, dayIdx, mealIdx, val) {
+  if (!progress[plan]) progress[plan] = {};
+  if (!progress[plan][weekIdx]) progress[plan][weekIdx] = {};
+  if (!progress[plan][weekIdx][dayIdx]) progress[plan][weekIdx][dayIdx] = {};
+  progress[plan][weekIdx][dayIdx][mealIdx] = val;
+  saveProgress(progress);
+}
+
+function isDayComplete(plan, weekIdx, dayIdx, totalMeals) {
+  if (!progress[plan]?.[weekIdx]?.[dayIdx]) return false;
+  for (let i = 0; i < totalMeals; i++) {
+    if (!progress[plan][weekIdx][dayIdx][i]) return false;
+  }
+  return true;
+}
+
+function countCompletedDays(plan) {
+  let count = 0;
+  for (let w = 0; w < 4; w++) {
+    for (let d = 0; d < 7; d++) {
+      const meals = MEALS[plan]?.[`w${w+1}`]?.[d]?.meals || [];
+      if (meals.length > 0 && isDayComplete(plan, w, d, meals.length)) count++;
+    }
+  }
+  return count;
+}
+
+function countDayProgress(plan, weekIdx, dayIdx, totalMeals) {
+  let count = 0;
+  for (let i = 0; i < totalMeals; i++) {
+    if (getCompletion(plan, weekIdx, dayIdx, i)) count++;
+  }
+  return count;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER & LOGIC
+// ═══════════════════════════════════════════════════════════════
+
+function renderPlanGrid() {
+  const grid = document.getElementById('plan-grid');
+  grid.innerHTML = Object.entries(PLAN_META).map(([id, m]) => `
+    <div class="plan-card ${state.plan === id ? 'active' : ''}" onclick="selectPlan('${id}')">
+      <div class="icon">${m.emoji}</div>
+      <div class="name">${m.label}</div>
+      <div class="range">${m.range}</div>
+      <div class="range" style="margin-top:6px;font-size:10px;color:var(--amber)">${m.kcalRange}</div>
+    </div>
+  `).join('');
+}
+
+function selectPlan(planId) {
+  state.plan = planId;
+  state.week = 0;
+  state.day = null;
+  renderPlanGrid();
+  renderNavSection();
+  document.getElementById('nav-section').classList.remove('hidden');
+  document.getElementById('month-progress-bar').style.display = 'flex';
+  document.getElementById('daily-panel').classList.remove('visible');
+  updateMonthProgress();
+  setTimeout(() => document.getElementById('nav-section').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+function renderNavSection() {
+  const weekTabs = document.getElementById('week-tabs');
+  weekTabs.innerHTML = WEEKS.map((w, i) => `
+    <div class="week-tab ${state.week === i ? 'active' : ''}" onclick="selectWeek(${i})">${w}</div>
+  `).join('');
+  renderDayRow();
+}
+
+function selectWeek(weekIdx) {
+  state.week = weekIdx;
+  state.day = null;
+  renderNavSection();
+  document.getElementById('daily-panel').classList.remove('visible');
+}
+
+function renderDayRow() {
+  const row = document.getElementById('day-row');
+  const weekData = MEALS[state.plan]?.[`w${state.week + 1}`] || [];
+  row.innerHTML = DAYS.map((day, i) => {
+    const dayData = weekData[i];
+    const totalMeals = dayData?.meals?.length || 5;
+    const complete = isDayComplete(state.plan, state.week, i, totalMeals);
+    const isActive = state.day === i;
+    const realDateStr = dayKey(state.week, i);
+    const [, , rd] = realDateStr.split('-').map(Number);
+    const isToday = realDateStr === todayKey();
+    return `
+      <div class="day-btn ${isActive ? 'active' : ''} ${complete ? 'completed-day' : ''} ${isToday ? 'today-btn' : ''}" onclick="selectDay(${i})" title="${realDateStr}">
+        <div class="day-name">${day.substring(0,3)}</div>
+        <div class="day-num">${rd}</div>
+        <div class="day-dot"></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectDay(dayIdx) {
+  state.day = dayIdx;
+  renderNavSection();
+  renderDailyPanel();
+  document.getElementById('daily-panel').classList.add('visible');
+  setTimeout(() => document.getElementById('daily-panel').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+function renderDailyPanel() {
+  const weekKey = `w${state.week + 1}`;
+  const dayData = MEALS[state.plan]?.[weekKey]?.[state.day];
+  if (!dayData) return;
+
+  const { tip, totalKcal, macros, meals } = dayData;
+  document.getElementById('daily-title').textContent = `${DAYS[state.day]} — Semana ${state.week + 1}`;
+
+  if (macros) {
+    document.getElementById('daily-macros').innerHTML = `
+      <div class="macro-pill">🔥 <span>${totalKcal}</span> kcal</div>
+      <div class="macro-pill">💪 P: <span>${macros.p}g</span></div>
+      <div class="macro-pill">⚡ C: <span>${macros.c}g</span></div>
+      <div class="macro-pill">🫒 G: <span>${macros.g}g</span></div>
+    `;
+  }
+
+  const completed = countDayProgress(state.plan, state.week, state.day, meals.length);
+  const pct = Math.round((completed / meals.length) * 100);
+  document.getElementById('day-progress-fill').style.width = pct + '%';
+
+  if (tip) {
+    document.getElementById('day-tip-text').textContent = tip;
+    document.getElementById('day-tip-card').classList.remove('hidden');
+  }
+
+  const mealTypeConfig = {
+    'Desayuno': { bgClass: 't-desayuno', tagClass: 'tag-desayuno', icon: '🌅' },
+    'Snack AM': { bgClass: 't-snack', tagClass: 'tag-snack', icon: '🍎' },
+    'Almuerzo': { bgClass: 't-almuerzo', tagClass: 'tag-almuerzo', icon: '☀️' },
+    'Snack PM': { bgClass: 't-snack', tagClass: 'tag-snack', icon: '🌿' },
+    'Cena': { bgClass: 't-cena', tagClass: 'tag-cena', icon: '🌙' }
+  };
+
+  const mealsList = document.getElementById('meals-list');
+  mealsList.innerHTML = meals.map((meal, i) => {
+    const cfg = mealTypeConfig[meal.type] || { bgClass: 't-snack', tagClass: 'tag-snack', icon: '🍽️' };
+    const done = getCompletion(state.plan, state.week, state.day, i);
+    const mTotal = macros ? (macros.p + macros.c + macros.g) : 1;
+    const protPct = macros ? Math.round((macros.p / mTotal) * 100) : 40;
+    const carbPct = macros ? Math.round((macros.c / mTotal) * 100) : 40;
+    const fatPct = macros ? Math.round((macros.g / mTotal) * 100) : 20;
+
+    return `
+      <div class="meal-card ${done ? 'done' : ''}" id="meal-card-${i}">
+        <div class="meal-head" onclick="toggleMealExpand(${i})">
+          <div class="meal-time-icon ${cfg.bgClass}">${cfg.icon}</div>
+          <div class="meal-meta">
+            <div class="meal-type-row">
+              <span class="meal-type-tag ${cfg.tagClass}">${meal.type}</span>
+              <span class="meal-cal">${meal.cal}</span>
+            </div>
+            <div class="meal-name">${meal.name}</div>
+            <div class="meal-desc">${meal.desc}</div>
+          </div>
+          <div class="meal-check-wrap" onclick="event.stopPropagation()">
+            <input type="checkbox" class="meal-check" id="chk-${i}" ${done ? 'checked' : ''}
+              onchange="toggleMealDone(${i}, this)">
+            <label for="chk-${i}" class="meal-check-label">Hecho</label>
+          </div>
+          <div class="chevron">▼</div>
+        </div>
+        <div class="recipe-detail" id="recipe-${i}">
+          <div class="recipe-tabs">
+            <div class="recipe-tab active" id="tab-nutr-${i}" onclick="switchRecipeTab(${i},'nutr')">📊 Nutrición</div>
+            <div class="recipe-tab" id="tab-ing-${i}" onclick="switchRecipeTab(${i},'ing')">🛒 Ingredientes</div>
+            <div class="recipe-tab" id="tab-prep-${i}" onclick="switchRecipeTab(${i},'prep')">👨‍🍳 Preparación</div>
+          </div>
+
+          <div class="recipe-pane active" id="pane-nutr-${i}">
+            <div class="macros-grid">
+              <div class="macro-box"><div class="macro-val">${meal.cal.replace(' kcal','')}</div><div class="macro-lbl">Calorías</div></div>
+              <div class="macro-box"><div class="macro-val">${meal.protein || Math.round((macros?.p||30)/5)}g</div><div class="macro-lbl">Proteínas</div></div>
+              <div class="macro-box"><div class="macro-val">${meal.carbs || Math.round((macros?.c||40)/5)}g</div><div class="macro-lbl">Carbs</div></div>
+              <div class="macro-box" style="grid-column:1"><div class="macro-val">${meal.fat || Math.round((macros?.g||10)/5)}g</div><div class="macro-lbl">Grasas</div></div>
+              <div class="macro-box"><div class="macro-val">${meal.fiber || Math.round(Math.random()*4+2)}g</div><div class="macro-lbl">Fibra</div></div>
+              <div class="macro-box"><div class="macro-val">${meal.sugar || Math.round(Math.random()*6+2)}g</div><div class="macro-lbl">Azúcares</div></div>
+            </div>
+            <div class="macro-bar-section">
+              <div class="section-title" style="margin-bottom:10px">Distribución de macros estimada</div>
+              <div class="mbar-row"><div class="mbar-labels"><span class="mbar-name">Proteínas</span><span class="mbar-pct">${protPct}%</span></div><div class="mbar"><div class="mbar-fill bar-prot" style="width:${protPct}%"></div></div></div>
+              <div class="mbar-row"><div class="mbar-labels"><span class="mbar-name">Carbohidratos</span><span class="mbar-pct">${carbPct}%</span></div><div class="mbar"><div class="mbar-fill bar-carb" style="width:${carbPct}%"></div></div></div>
+              <div class="mbar-row"><div class="mbar-labels"><span class="mbar-name">Grasas</span><span class="mbar-pct">${fatPct}%</span></div><div class="mbar"><div class="mbar-fill bar-gras" style="width:${fatPct}%"></div></div></div>
+            </div>
+            ${meal.benefits ? `
+            <div class="benefits-list">
+              ${meal.benefits.map(b => `<div class="benefit-item"><span class="benefit-icon">✓</span>${b}</div>`).join('')}
+            </div>` : ''}
+          </div>
+
+          <div class="recipe-pane" id="pane-ing-${i}">
+            <div class="time-diff-row">
+              <div class="info-chip"><div class="ic-icon">⏱️</div><div class="ic-label">Tiempo</div><div class="ic-value">${meal.time || '15 min'}</div></div>
+              <div class="info-chip"><div class="ic-icon">⚡</div><div class="ic-label">Dificultad</div><div class="ic-value">${meal.diff || 'Fácil'}</div></div>
+            </div>
+            <div class="section-title" style="margin-bottom:10px">Ingredientes</div>
+            <div class="ingredients-list">
+              ${(meal.ingredients || []).map(ing => `
+                <div class="ing-item"><div class="ing-dot"></div>${ing}</div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="recipe-pane" id="pane-prep-${i}">
+            <div class="steps-list">
+              ${(meal.steps || []).map((step, si) => `
+                <div class="step-item">
+                  <div class="step-num">${si + 1}</div>
+                  <div class="step-content">
+                    <div class="step-title">${step.t}</div>
+                    <div class="step-body">${step.b}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            ${meal.tip ? `
+            <div class="tip-box">
+              <div class="tip-icon">💡</div>
+              <div class="tip-text"><strong>Consejo:</strong> ${meal.tip}</div>
+            </div>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleMealExpand(i) {
+  const card = document.getElementById(`meal-card-${i}`);
+  const detail = document.getElementById(`recipe-${i}`);
+  const isExpanded = card.classList.contains('expanded');
+  document.querySelectorAll('.meal-card').forEach(c => c.classList.remove('expanded'));
+  document.querySelectorAll('.recipe-detail').forEach(d => d.classList.remove('open'));
+  if (!isExpanded) {
+    card.classList.add('expanded');
+    detail.classList.add('open');
+  }
+}
+
+function switchRecipeTab(mealIdx, tab) {
+  ['nutr','ing','prep'].forEach(t => {
+    document.getElementById(`tab-${t}-${mealIdx}`)?.classList.toggle('active', t === tab);
+    document.getElementById(`pane-${t}-${mealIdx}`)?.classList.toggle('active', t === tab);
+  });
+}
+
+function toggleMealDone(mealIdx, checkbox) {
+  setCompletion(state.plan, state.week, state.day, mealIdx, checkbox.checked);
+  const card = document.getElementById(`meal-card-${mealIdx}`);
+  card.classList.toggle('done', checkbox.checked);
+
+  const weekKey = `w${state.week + 1}`;
+  const meals = MEALS[state.plan]?.[weekKey]?.[state.day]?.meals || [];
+  const completed = countDayProgress(state.plan, state.week, state.day, meals.length);
+  logMealCompletion(PAGE_ID, completed, meals.length);
+  const pct = Math.round((completed / meals.length) * 100);
+  document.getElementById('day-progress-fill').style.width = pct + '%';
+
+  updateMonthProgress();
+  renderDayRow();
+
+  if (pct === 100) {
+    setTimeout(() => document.getElementById('modal').classList.add('open'), 400);
+  }
+}
+
+function updateMonthProgress() {
+  if (!state.plan) return;
+  const completed = countCompletedDays(state.plan);
+  const total = 28;
+  document.getElementById('month-bar-fill').style.width = Math.round((completed/total)*100) + '%';
+  document.getElementById('month-stat-text').textContent = `${completed} / ${total} días completados`;
+  document.getElementById('month-label-text').textContent = `${PLAN_META[state.plan].label} — Plan Mensual Sin Huevo`;
+  document.getElementById('month-detail-text').textContent = `${PLAN_META[state.plan].icon} • ${PLAN_META[state.plan].kcalRange}`;
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderPlanGrid();
+});
+</script>
+</body>
+</html>

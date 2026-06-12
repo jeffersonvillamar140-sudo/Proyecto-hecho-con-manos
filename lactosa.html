@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeBite Plus — Plan Nutricional Sin Lactosa</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sage: #16a34a; /* Adaptado al verde "Frutal" del plan lactosa */
+  --sage-light: #4ade80;
+  --sage-pale: #f0fdf4;
+  --amber: #f59e0b;
+  --amber-light: #fbbf24;
+  --amber-pale: #fef3dc;
+  --cream: #fafaf9;
+  --dark: #14532d;
+  --mid: #166534;
+  --text: #1f2937;
+  --text-light: #4b5563;
+  --border: #d1fae5;
+  --white: #ffffff;
+  --card-radius: 20px;
+  --shadow: 0 4px 24px rgba(22, 163, 74, 0.10);
+  --shadow-lg: 0 12px 48px rgba(22, 163, 74, 0.18);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+
+/* ── LAYOUT ── */
+.app-shell { max-width: 1100px; margin: 0 auto; padding: 0 16px 80px; }
+
+/* ── HEADER ── */
+.app-header { padding: 32px 0 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.app-logo { font-family: 'Syne', sans-serif; font-size: clamp(28px,5vw,44px); font-weight: 800; color: var(--sage); letter-spacing: -1px; }
+.app-logo span { color: var(--amber); }
+.app-sub { font-size: 14px; color: var(--text-light); letter-spacing: 0.5px; font-weight: 500; }
+.lactose-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--sage); color: white; padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+/* ── PROGRESS HEADER ── */
+.month-header { display: flex; align-items: center; justify-content: space-between; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--card-radius); padding: 18px 24px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.month-label { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--dark); }
+.month-progress { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.month-bar-wrap { width: 180px; height: 8px; background: var(--sage-pale); border-radius: 4px; overflow: hidden; }
+.month-bar-fill { height: 100%; background: linear-gradient(90deg, var(--amber), var(--amber-light)); border-radius: 4px; transition: width 0.6s ease; }
+.month-stat { font-size: 12px; color: var(--text-light); font-weight: 600; }
+
+/* ── PLAN SELECTOR ── */
+.section-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; }
+.plan-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 28px; }
+.plan-card { border: 2px solid var(--border); border-radius: var(--card-radius); background: var(--white); padding: 18px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; }
+.plan-card:hover { border-color: var(--sage-light); box-shadow: var(--shadow); transform: translateY(-2px); }
+.plan-card.active { border-color: var(--sage); background: var(--sage-pale); }
+.plan-card .icon { font-size: 32px; margin-bottom: 8px; }
+.plan-card .name { font-weight: 700; font-size: 13px; color: var(--dark); }
+.plan-card .range { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.plan-card.active .name { color: var(--sage); }
+
+/* ── WEEK / DAY NAVIGATION ── */
+.nav-section { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--card-radius); overflow: hidden; margin-bottom: 24px; box-shadow: var(--shadow); }
+.week-tabs { display: flex; border-bottom: 1.5px solid var(--border); }
+.week-tab { flex: 1; padding: 12px 8px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-light); cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; text-transform: uppercase; }
+.week-tab:hover { background: var(--sage-pale); color: var(--sage); }
+.week-tab.active { background: var(--sage); color: white; }
+.day-row { display: grid; grid-template-columns: repeat(7,1fr); padding: 12px; gap: 8px; }
+.day-btn { border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 4px; text-align: center; cursor: pointer; background: var(--white); transition: all 0.2s; position: relative; }
+.day-btn:hover { border-color: var(--sage-light); background: var(--sage-pale); }
+.day-btn.active { border-color: var(--sage); background: var(--sage); color: white; }
+.day-btn.active .day-name, .day-btn.active .day-num { color: white; }
+.day-btn.completed-day::after { content: '✓'; position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; background: var(--amber); border-radius: 50%; font-size: 9px; font-weight: 900; color: white; display: flex; align-items: center; justify-content: center; }
+.day-name { font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+.day-num { font-size: 16px; font-weight: 800; color: var(--dark); margin-top: 2px; }
+.day-dot { width: 6px; height: 6px; border-radius: 3px; background: var(--border); margin: 4px auto 0; }
+.day-btn.completed-day .day-dot { background: var(--amber-light); }
+.day-btn.today-btn { outline: 2px solid var(--sage); outline-offset: 2px; }
+
+
+/* ── DAILY PANEL ── */
+.daily-panel { display: none; }
+.daily-panel.visible { display: block; }
+.daily-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.daily-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--dark); }
+.daily-macros { display: flex; gap: 10px; flex-wrap: wrap; }
+.macro-pill { background: var(--sage-pale); border: 1px solid var(--sage-light); border-radius: 12px; padding: 6px 12px; font-size: 11px; font-weight: 700; color: var(--sage); display: flex; gap: 4px; align-items: center; }
+.macro-pill span { color: var(--amber); }
+.day-progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+.day-progress-fill { height: 100%; background: linear-gradient(90deg, var(--sage), var(--sage-light)); border-radius: 3px; transition: width 0.5s; }
+
+/* ── MEAL CARDS ── */
+.meals-list { display: flex; flex-direction: column; gap: 16px; }
+.meal-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--card-radius); overflow: hidden; box-shadow: var(--shadow); transition: all 0.25s; }
+.meal-card.done { border-color: var(--sage-light); background: linear-gradient(135deg, var(--white), var(--sage-pale)); }
+.meal-head { display: flex; align-items: flex-start; gap: 14px; padding: 18px 18px 14px; cursor: pointer; }
+.meal-time-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.meal-meta { flex: 1; min-width: 0; }
+.meal-type-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.meal-type-tag { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 3px 8px; border-radius: 6px; }
+.meal-cal { font-size: 11px; font-weight: 700; color: var(--text-light); margin-left: auto; }
+.meal-name { font-weight: 800; font-size: 15px; color: var(--dark); line-height: 1.2; }
+.meal-desc { font-size: 12px; color: var(--text-light); margin-top: 3px; line-height: 1.4; }
+.meal-check-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; padding-top: 2px; }
+.meal-check { width: 26px; height: 26px; accent-color: var(--sage); cursor: pointer; border-radius: 6px; }
+.meal-check-label { font-size: 9px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+.chevron { font-size: 14px; color: var(--text-light); transition: transform 0.3s; flex-shrink: 0; margin-top: 4px; }
+.meal-card.expanded .chevron { transform: rotate(180deg); }
+
+/* ── RECIPE DETAIL ── */
+.recipe-detail { display: none; border-top: 1.5px solid var(--border); }
+.recipe-detail.open { display: block; }
+.recipe-tabs { display: flex; border-bottom: 1.5px solid var(--border); }
+.recipe-tab { flex: 1; padding: 11px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-light); cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
+.recipe-tab.active { background: var(--amber-pale); color: var(--amber); border-bottom: 2px solid var(--amber); }
+.recipe-pane { padding: 20px 18px; display: none; }
+.recipe-pane.active { display: block; }
+
+/* Nutrition pane */
+.macros-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+.macro-box { text-align: center; background: var(--sage-pale); border-radius: 14px; padding: 14px 8px; }
+.macro-val { font-size: 22px; font-weight: 900; color: var(--amber); }
+.macro-lbl { font-size: 10px; font-weight: 700; color: var(--sage); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.macro-bar-section { margin-top: 14px; }
+.mbar-row { margin-bottom: 10px; }
+.mbar-labels { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.mbar-name { font-size: 12px; font-weight: 700; color: var(--text); }
+.mbar-pct { font-size: 12px; font-weight: 700; color: var(--text-light); }
+.mbar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.mbar-fill { height: 100%; border-radius: 4px; }
+.benefits-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.benefit-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--text); line-height: 1.4; }
+.benefit-icon { color: var(--sage-light); font-weight: 900; flex-shrink: 0; }
+
+/* Ingredients pane */
+.time-diff-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.info-chip { background: var(--sage-pale); border-radius: 14px; padding: 12px; text-align: center; }
+.info-chip .ic-icon { font-size: 20px; }
+.info-chip .ic-label { font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.info-chip .ic-value { font-size: 14px; font-weight: 800; color: var(--dark); margin-top: 1px; }
+.ingredients-list { display: flex; flex-direction: column; gap: 8px; }
+.ing-item { display: flex; align-items: center; gap: 10px; background: var(--cream); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; font-size: 13px; color: var(--text); font-weight: 500; }
+.ing-dot { width: 8px; height: 8px; border-radius: 4px; background: var(--amber); flex-shrink: 0; }
+
+/* Preparation pane */
+.steps-list { display: flex; flex-direction: column; gap: 12px; }
+.step-item { display: flex; gap: 14px; }
+.step-num { width: 32px; height: 32px; border-radius: 10px; background: var(--sage); color: white; font-size: 13px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.step-content { flex: 1; }
+.step-title { font-weight: 700; font-size: 13px; color: var(--dark); margin-bottom: 3px; }
+.step-body { font-size: 12px; color: var(--text-light); line-height: 1.6; }
+.tip-box { background: var(--amber-pale); border: 1.5px solid #f0d080; border-radius: 14px; padding: 14px 16px; margin-top: 14px; display: flex; gap: 10px; align-items: flex-start; }
+.tip-icon { font-size: 18px; flex-shrink: 0; }
+.tip-text { font-size: 12px; color: #7a5a00; font-weight: 500; line-height: 1.5; }
+
+/* ── NAV TIP CARD ── */
+.day-tip-card { background: linear-gradient(135deg, var(--sage), var(--sage-light)); border-radius: var(--card-radius); padding: 20px; margin-top: 16px; color: white; display: flex; gap: 12px; align-items: flex-start; }
+.day-tip-icon { font-size: 24px; flex-shrink: 0; }
+.day-tip-text { font-size: 13px; line-height: 1.5; font-weight: 500; opacity: 0.95; }
+.day-tip-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; margin-bottom: 4px; }
+
+/* ── COMPLETION MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal-box { background: var(--white); border-radius: 24px; max-width: 480px; width: 100%; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); }
+.modal-emoji { font-size: 64px; margin-bottom: 16px; }
+.modal-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; color: var(--dark); margin-bottom: 12px; }
+.modal-text { font-size: 14px; color: var(--text-light); line-height: 1.7; margin-bottom: 24px; }
+.modal-brand { font-weight: 800; color: var(--sage); }
+.modal-btn { background: var(--sage); color: white; border: none; padding: 14px 36px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+.modal-btn:hover { background: var(--sage-light); transform: translateY(-2px); }
+
+/* ── COLOR CLASSES ── */
+.t-desayuno { background: #fff8e8; }
+.tag-desayuno { background: #fff0c8; color: #b37600; }
+.t-snack { background: #e8f4ed; }
+.tag-snack { background: #d0ecd8; color: #2a6644; }
+.t-almuerzo { background: #e8f0ff; }
+.tag-almuerzo { background: #d0dfff; color: #2244b3; }
+.t-cena { background: #f0e8f4; }
+.tag-cena { background: #e0d0ec; color: #6b2c9a; }
+
+.bar-prot { background: linear-gradient(90deg, #f5a623, #f0c060); }
+.bar-carb { background: linear-gradient(90deg, #3d9bd4, #64b8e8); }
+.bar-gras { background: linear-gradient(90deg, #e05c3a, #f08060); }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--text-light); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-msg { font-weight: 600; font-size: 15px; color: var(--text); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .plan-grid { grid-template-columns: 1fr; }
+  .macros-grid { grid-template-columns: repeat(3,1fr); }
+  .time-diff-row { grid-template-columns: 1fr 1fr; }
+  .daily-header { flex-direction: column; align-items: flex-start; }
+  .month-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .month-bar-wrap { width: 100%; }
+  .week-tabs { overflow-x: auto; }
+  .week-tab { min-width: 70px; }
+}
+
+.hidden { display: none !important; }
+.back-btn{
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 9999;
+
+    background: var(--sage);
+    color: white;
+
+    border: none;
+    border-radius: 14px;
+
+    padding: 12px 18px;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow: 0 4px 12px rgba(22,163,74,.25);
+
+    transition: all .2s ease;
+}
+
+.back-btn:hover{
+    background: var(--mid);
+    transform: translateY(-2px);
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="app-logo">Safe<span>Bite</span> Plus</div>
+    <div class="app-sub">Plan Nutricional Personalizado</div>
+    <span class="lactose-badge">🥛 100% Sin Lactosa</span>
+  </header>
+
+  <!-- MONTHLY PROGRESS -->
+  <div class="month-header" id="month-progress-bar" style="display:none">
+    <div>
+      <div class="month-label" id="month-label-text">Mes 1 — Plan de 4 Semanas</div>
+      <div style="font-size:12px;color:var(--text-light);margin-top:4px" id="month-detail-text">Selecciona un día para comenzar</div>
+    </div>
+    <div class="month-progress">
+      <div class="month-bar-wrap"><div class="month-bar-fill" id="month-bar-fill" style="width:0%"></div></div>
+      <div class="month-stat" id="month-stat-text">0 / 28 días completados</div>
+    </div>
+  </div>
+<button class="back-btn" onclick="goBackToIndex()">
+    ← Regresar
+</button>
+  <!-- PLAN SELECTION -->
+  <div class="section-title">① Selecciona tu plan según tu objetivo</div>
+  <div class="plan-grid" id="plan-grid"></div>
+
+  <!-- WEEK / DAY NAV -->
+  <div class="nav-section hidden" id="nav-section">
+    <div class="week-tabs" id="week-tabs"></div>
+    <div class="day-row" id="day-row"></div>
+  </div>
+
+  <!-- DAILY PANEL -->
+  <div class="daily-panel" id="daily-panel">
+    <div class="daily-header">
+      <div class="daily-title" id="daily-title">Selecciona un día</div>
+      <div class="daily-macros" id="daily-macros"></div>
+    </div>
+    <div class="day-progress-bar"><div class="day-progress-fill" id="day-progress-fill" style="width:0%"></div></div>
+    <div class="meals-list" id="meals-list"></div>
+    <div class="day-tip-card hidden" id="day-tip-card">
+      <div class="day-tip-icon">💡</div>
+      <div><div class="day-tip-label">Tip del día</div><div class="day-tip-text" id="day-tip-text"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- COMPLETION MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-emoji">🏆</div>
+    <div class="modal-title">¡Día Completado!</div>
+    <div class="modal-text">¡Excelente trabajo! Has completado todas las comidas libres de lactosa de hoy. <span class="modal-brand">SafeBite Plus</span> está orgulloso de tu constancia.</div>
+    <button class="modal-btn" onclick="closeModal()">¡A seguir! 💪</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA — Plan Sin Lactosa Mejorado
+// ═══════════════════════════════════════════════════════════════
+
+const PLAN_META = {
+  sobrepeso: { label: 'Déficit Calórico', emoji: '📉', range: 'Bajar de peso', icon: '⬇️ Control de porciones', kcalRange: '1300–1500 kcal' },
+  normal:    { label: 'Mantenimiento',    emoji: '✨', range: 'Salud Óptima', icon: '⚖️ Balance calórico', kcalRange: '1800–2000 kcal' },
+  bajo:      { label: 'Aumento de Masa',  emoji: '💪', range: 'Ganancia muscular', icon: '⬆️ Superávit calórico', kcalRange: '2400–2700 kcal' }
+};
+
+const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const WEEKS = ['Semana 1','Semana 2','Semana 3','Semana 4'];
+
+function buildMeal(type, name, desc, cal, protein, carbs, fat, ingredients, steps, tip, benefits, time, diff) {
+  return { type, name, desc, cal, protein, carbs, fat, ingredients, steps, tip, benefits, time: time||'15 min', diff: diff||'Fácil' };
+}
+
+const MEALS = {
+  sobrepeso: {
+    w1: [
+      { day:'Lunes', tip:'💧 Bebe un vaso de agua 15 minutos antes de cada comida para mejorar la sensación de saciedad y la digestión.', totalKcal:1360, macros:{p:108,c:135,g:45},
+        meals:[
+          buildMeal('Desayuno','Tostada Integral con Aguacate y Claras','Proteína ligera y grasas saludables','280 kcal',14,32,10,
+            ['1 rebanada de pan integral 100%','1/4 de aguacate mediano','2 claras de huevo','Semillas de sésamo y sal al gusto'],
+            [{t:'Preparar pan',b:'Tuesta la rebanada de pan integral hasta que esté dorada y crujiente.'},{t:'Cocinar claras',b:'En una sartén antiadherente, cocina las claras de huevo revolviendo suavemente.'},{t:'Armar',b:'Haz un puré con el aguacate y úntalo en el pan. Coloca las claras encima y espolvorea sésamo.'}],
+            'Agrega unas gotas de limón al aguacate para resaltar su sabor y evitar que se oxide.',
+            ['Las claras de huevo son proteína de alto valor biológico libre de grasas','El aguacate ayuda a absorber las vitaminas liposolubles']),
+          buildMeal('Almuerzo','Salmón a la Plancha con Quinoa y Espárragos','Almuerzo rico en Omega-3 y libre de lácteos','350 kcal',30,22,15,
+            ['120g de filete de salmón fresco','1/4 taza de quinoa cruda (o 1/2 taza cocida)','1 puñado generoso de espárragos verdes','1 cucharadita de aceite de oliva','Limón, sal y pimienta negra'],
+            [{t:'Quinoa',b:'Lava la quinoa y cocínala a fuego lento con el doble de agua durante 15 minutos.'},{t:'Espárragos',b:'Corta la parte dura de los espárragos y saltéalos en una sartén con media cucharadita de aceite de oliva.'},{t:'Salmón',b:'Sazona el salmón y cocínalo a la plancha 3-4 minutos por lado hasta que esté dorado por fuera y jugoso por dentro.'}],
+            'El salmón se cocina muy rápido. Evita sobrecocinarlo para que no quede seco.',
+            ['La quinoa aporta fibra y todos los aminoácidos esenciales','El salmón es un excelente antiinflamatorio natural']),
+          buildMeal('Snack PM','Manzana Verde Crujiente y Almendras','Snack de fibra que estabiliza la glucosa','180 kcal',4,24,8,
+            ['1 manzana verde pequeña','15g de almendras crudas (aprox. 12 unidades)'],
+            [{t:'Preparación',b:'Lava bien la manzana y córtala en rodajas manteniendo la piel.'},{t:'Consumo',b:'Acompaña las rodajas de manzana con las almendras masticando lentamente.'}],
+            'Mastica muy bien las almendras para facilitar su digestión y aprovechar sus nutrientes.',
+            ['La piel de la manzana contiene pectina, ideal para la salud intestinal','Las almendras aportan calcio vegetal, ideal en dietas sin lactosa']),
+          buildMeal('Cena','Crema de Calabaza y Semillas (Sin Nata)','Cena ligera, digestiva y muy reconfortante','250 kcal',10,28,12,
+            ['2 tazas de calabaza picada en cubos','1 taza de caldo de vegetales','1 cucharada de aceite de oliva','1 cucharada de semillas de calabaza tostadas','Pizca de nuez moscada y sal'],
+            [{t:'Cocción',b:'Hierve la calabaza en el caldo de vegetales hasta que esté completamente tierna (aprox. 15 min).'},{t:'Licuado',b:'Procesa la calabaza con el caldo y el aceite de oliva hasta obtener una crema sedosa. No necesitas lácteos para lograr esta textura.'},{t:'Servir',b:'Sirve caliente, espolvorea nuez moscada y añade las semillas de calabaza crujientes encima.'}],
+            'Para extra cremosidad sin lactosa, puedes añadir 2 cucharadas de leche de coco al licuar.',
+            ['La calabaza es rica en betacarotenos que protegen la salud visual','Al no usar nata, reduces significativamente las grasas saturadas de la cena'])
+        ]
+      },
+      { day:'Martes', tip:'🥚 Sustituye el huevo entero por claras adicionales si buscas reducir calorías manteniendo un alto aporte de proteína.', totalKcal:1380, macros:{p:112,c:120,g:42},
+        meals:[
+          buildMeal('Desayuno','Batido Proteico Frutal','Desayuno rápido, completo y sin lácteos','250 kcal',24,28,5,
+            ['1 scoop de proteína en polvo (aislada sin lactosa o vegetal)','1 taza de agua o leche de almendras sin azúcar','5 fresas frescas o congeladas','1 cucharadita de semillas de chía'],
+            [{t:'Mezclar',b:'Coloca todos los ingredientes en la licuadora.'},{t:'Licuar',b:'Procesa a velocidad alta durante 30 segundos hasta que la chía se integre y el batido esté espumoso.'}],
+            'Las fresas congeladas le darán una textura similar a un frappé.',
+            ['La proteína en polvo asegura el mantenimiento muscular durante el déficit calórico','Las fresas aportan vitamina C y antioxidantes potentes']),
+          buildMeal('Almuerzo','Seco de Pollo Ligero con Ensalada','Versión saludable del clásico, sin grasas añadidas','380 kcal',35,38,10,
+            ['1 presa de pollo (pechuga o muslo sin piel)','1/4 taza de arroz integral crudo','1 tomate, 1/4 cebolla morada, cilantro para la base','Abundante lechuga y rábano para acompañar'],
+            [{t:'Arroz',b:'Cocina el arroz integral con antelación (tarda aprox. 35 min).'},{t:'Guiso',b:'Licúa el tomate, cebolla y cilantro con un poco de agua. Usa esto como base para guisar el pollo a fuego medio hasta que esté tierno.'},{t:'Ensalada',b:'Pica la lechuga y el rábano finamente. Aliña solo con limón y sal.'}],
+            'Cocinar el pollo sin su piel reduce drásticamente las grasas saturadas del plato.',
+            ['El pollo aporta proteínas de fácil digestión','El arroz integral evita picos de insulina en la sangre']),
+          buildMeal('Snack PM','Yogur de Coco Natural','Opción probiótica sin rastros de lácteos','120 kcal',2,12,8,
+            ['100g de yogur de coco natural (sin azúcar añadida)','Unas gotitas de esencia de vainilla'],
+            [{t:'Preparación',b:'Sirve el yogur de coco bien frío en un bol.'},{t:'Sabor',b:'Si está muy ácido, añade una gota de extracto de vainilla para endulzar el aroma sin sumar calorías.'}],
+            'Revisa siempre las etiquetas: el yogur de coco comercial debe tener probióticos vivos.',
+            ['El yogur de coco es una excelente alternativa fermentada sin lactosa','Aporta grasas de cadena media (MCT) que el cuerpo usa rápidamente como energía']),
+          buildMeal('Cena','Tortilla de Champiñones y Espárragos','Cena alta en volumen y baja en calorías','220 kcal',22,8,12,
+            ['1 huevo entero y 2 claras','1/2 taza de champiñones laminados','5 espárragos cortados en trozos','Sal, pimienta y orégano'],
+            [{t:'Salteado',b:'En una sartén con unas gotas de aceite, saltea los champiñones y espárragos hasta que suelten su agua y doren.'},{t:'Huevos',b:'Bate el huevo junto con las claras, sal y pimienta.'},{t:'Cocción final',b:'Vierte los huevos sobre los vegetales en la sartén. Tapa y cocina a fuego bajo hasta que cuaje.'}],
+            'Los champiñones absorben mucho sabor; el orégano y la pimienta negra son sus mejores aliados.',
+            ['Los champiñones aportan volumen y saciedad por muy pocas calorías','Los espárragos actúan como un diurético natural suave'])
+        ]
+      },
+      { day:'Miércoles', tip:'🧅 El rábano y la cebolla cruda en tus ensaladas activan el metabolismo y dan muchísimo sabor sin añadir una sola gota de grasa.', totalKcal:1350, macros:{p:105,c:140,g:38},
+        meals:[
+          buildMeal('Desayuno','Tortilla de Maíz con Pollo Desmechado','Desayuno contundente y libre de gluten/lactosa','300 kcal',25,30,8,
+            ['1 tortilla de maíz (100% maíz, no trigo)','60g de pechuga de pollo desmechada','1/2 tomate picado en cubitos','Cilantro fresco picado'],
+            [{t:'Calentar',b:'Calienta la tortilla de maíz en un comal o sartén seca hasta que esté flexible.'},{t:'Relleno',b:'Mezcla el pollo desmechado caliente con el tomate fresco y el cilantro.'},{t:'Servir',b:'Rellena la tortilla y cómetela al momento.'}],
+            'Puedes tener el pollo desmechado listo en la nevera desde el domingo para ahorrar tiempo.',
+            ['El maíz es naturalmente libre de gluten y fácil de digerir','Un desayuno alto en proteína evita los antojos a media mañana']),
+          buildMeal('Almuerzo','Ternera Salteada con Brócoli','Comida rica en hierro y fibra','350 kcal',32,25,12,
+            ['120g de filete de ternera magra en tiras','1.5 tazas de arbolitos de brócoli','2 cucharadas de arroz blanco o integral','1 cucharadita de salsa de soja (tamari, sin gluten)'],
+            [{t:'Brócoli',b:'Cocina el brócoli al vapor por solo 4 minutos para que quede verde brillante y crujiente.'},{t:'Carne',b:'En un wok o sartén muy caliente, saltea las tiras de ternera rápidamente.'},{t:'Unir',b:'Añade el brócoli y la salsa de soja a la carne. Revuelve por 1 minuto y sirve junto con la pequeña porción de arroz.'}],
+            'El secreto del salteado es que la sartén esté humeando de calor antes de poner la carne.',
+            ['La ternera magra es una de las mejores fuentes de hierro hemo','La vitamina C del brócoli ayuda a que tu cuerpo absorba todo el hierro de la carne']),
+          buildMeal('Snack PM','Papaya Fresca Picada','Snack digestivo perfecto para media tarde','60 kcal',1,14,0,
+            ['1 taza de papaya fresca picada en cubos','Chorrito de limón (opcional)'],
+            [{t:'Preparación',b:'Pela la papaya, retira las semillas y córtala en porciones de un bocado.'},{t:'Sugerencia',b:'Añade unas gotas de limón fresco por encima para contrastar el dulzor.'}],
+            'La papaya es excelente si sufres de digestiones pesadas o inflamación abdominal.',
+            ['Contiene papaína, una enzima que ayuda a descomponer las proteínas de tus comidas anteriores','Es sumamente baja en calorías pero alta en agua, hidratando el cuerpo']),
+          buildMeal('Cena','Ensalada Fresca de Garbanzos y Atún','Cena rápida sin necesidad de cocinar','280 kcal',28,25,8,
+            ['3 cucharadas grandes de garbanzos cocidos','1 lata de atún al natural (en agua)','1/2 pepino picado','1/4 de cebolla morada picada fina','Limón y sal'],
+            [{t:'Drenar',b:'Escurre bien los garbanzos y lava el atún si lo deseas para quitar el exceso de sodio.'},{t:'Mezclar',b:'En un bol profundo, combina los garbanzos, el atún desmenuzado, el pepino y la cebolla morada.'},{t:'Aderezo',b:'Exprime abundante limón, añade una pizca de sal y pimienta, y mezcla bien.'}],
+            'Si la cebolla cruda te resulta muy fuerte, déjala remojando en agua con limón 10 minutos antes de usarla.',
+            ['Los garbanzos aportan carbohidratos de asimilación lenta para dormir bien','El atún al natural te brinda proteína magra sin grasas añadidas'])
+        ]
+      }
+    ]
+  }
+};
+
+// Generar días restantes automáticamente para que la app sea funcional
+function generateWeekData(plan, weekNum) {
+  const basePlan = MEALS.sobrepeso.w1;
+  return basePlan.map((dayData, i) => ({
+    ...dayData,
+    tip: `Semana ${weekNum} — ${dayData.tip}`
+  }));
+}
+
+MEALS.normal = { w1: generateWeekData('normal',1), w2: generateWeekData('normal',2), w3: generateWeekData('normal',3), w4: generateWeekData('normal',4) };
+MEALS.bajo = { w1: generateWeekData('bajo',1), w2: generateWeekData('bajo',2), w3: generateWeekData('bajo',3), w4: generateWeekData('bajo',4) };
+MEALS.sobrepeso.w2 = generateWeekData('sobrepeso',2);
+MEALS.sobrepeso.w3 = generateWeekData('sobrepeso',3);
+MEALS.sobrepeso.w4 = generateWeekData('sobrepeso',4);
+
+// ═══════════════════════════════════════════════════════════════
+// STATE Y LOGICA
+// ═══════════════════════════════════════════════════════════════
+let state = { plan: null, week: 0, day: null };
+const LS_KEY = 'safebite_lactosa_progress';
+
+// Vuelve a index.html conservando la sesión del usuario (pasada por URL al entrar aquí)
+function goBackToIndex() {
+    // Si esta pestaña fue abierta desde index.html (window.open), sincroniza
+    // el registro de comidas completadas directamente en esa pestaña antes de cerrar.
+    try {
+        if (window.opener && !window.opener.closed) {
+            const myLog = loadMealLog();
+            const openerLog = JSON.parse(window.opener.localStorage.getItem(MEAL_LOG_KEY) || '{}');
+            for (const date in myLog) {
+                if (!openerLog[date]) openerLog[date] = {};
+                Object.assign(openerLog[date], myLog[date]);
+            }
+            window.opener.localStorage.setItem(MEAL_LOG_KEY, JSON.stringify(openerLog));
+            if (typeof window.opener.refreshMealCalendar === 'function') {
+                window.opener.refreshMealCalendar();
+            }
+        }
+    } catch (e) {}
+
+    window.close();
+    // Si el navegador no permite cerrar (pestaña no abierta por script),
+    // regresamos como respaldo a la pestaña/pantalla de inicio, pasando
+    // también el registro de comidas por la URL.
+    setTimeout(() => {
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get('user');
+        let url = 'index.html';
+        const qp = new URLSearchParams();
+        if (email) {
+            qp.set('user', email);
+            const name = params.get('name');
+            const photo = params.get('photo');
+            if (name) qp.set('name', name);
+            if (photo) qp.set('photo', photo);
+        }
+        try {
+            qp.set('meallog', encodeURIComponent(JSON.stringify(loadMealLog())));
+        } catch (e) {}
+        const qs = qp.toString();
+        if (qs) url += '?' + qs;
+        window.location.href = url;
+    }, 300);
+}
+
+
+function loadProgress() { try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; } }
+function saveProgress(progress) { try { localStorage.setItem(LS_KEY, JSON.stringify(progress)); } catch {} }
+let progress = loadProgress();
+
+// ===== REGISTRO DE COMIDAS COMPLETADAS (para el calendario del index) =====
+const PAGE_ID = 'sin-lactosa';
+const MEAL_LOG_KEY = 'safebite_meal_log';
+const START_DATE_KEY = 'safebite_lactosa_startdate';
+
+function todayKey() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// Obtiene (o crea) la fecha de inicio del plan
+function getPlanStartDate() {
+  let saved = localStorage.getItem(START_DATE_KEY);
+  if (!saved) {
+    saved = todayKey();
+    localStorage.setItem(START_DATE_KEY, saved);
+  }
+  return saved;
+}
+
+// Calcula la fecha real del calendario para un día del plan
+// Día 0 de semana 0 = fecha inicio, Día 1 de semana 0 = fecha inicio + 1 día, etc.
+function dayKey(weekIdx, dayIdx) {
+  const startStr = getPlanStartDate();
+  const [y, m, d] = startStr.split('-').map(Number);
+  const start = new Date(y, m - 1, d);
+  const offset = weekIdx * 7 + dayIdx;
+  const target = new Date(start);
+  target.setDate(start.getDate() + offset);
+  const yyyy = target.getFullYear();
+  const mm = String(target.getMonth() + 1).padStart(2, '0');
+  const dd = String(target.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function loadMealLog() {
+  try { return JSON.parse(localStorage.getItem(MEAL_LOG_KEY)) || {}; } catch { return {}; }
+}
+function saveMealLog(log) {
+  try { localStorage.setItem(MEAL_LOG_KEY, JSON.stringify(log)); } catch {}
+}
+function logMealCompletion(planId, doneCount, totalCount) {
+  const log = loadMealLog();
+  const key = dayKey(state.week, state.day);
+  if (!log[key]) log[key] = {};
+  log[key][planId] = { done: doneCount, total: totalCount };
+  saveMealLog(log);
+}
+
+function getCompletion(plan, weekIdx, dayIdx, mealIdx) { return !!progress?.[plan]?.[weekIdx]?.[dayIdx]?.[mealIdx]; }
+function setCompletion(plan, weekIdx, dayIdx, mealIdx, val) {
+  if (!progress[plan]) progress[plan] = {};
+  if (!progress[plan][weekIdx]) progress[plan][weekIdx] = {};
+  if (!progress[plan][weekIdx][dayIdx]) progress[plan][weekIdx][dayIdx] = {};
+  progress[plan][weekIdx][dayIdx][mealIdx] = val;
+  saveProgress(progress);
+}
+
+function countCompletedDays(plan) {
+  let count = 0;
+  for (let w = 0; w < 4; w++) {
+    for (let d = 0; d < 7; d++) {
+      const meals = MEALS[plan]?.[`w${w+1}`]?.[d]?.meals || [];
+      if (meals.length > 0 && meals.every((_, i) => getCompletion(plan, w, d, i))) count++;
+    }
+  }
+  return count;
+}
+
+function countDayProgress(plan, weekIdx, dayIdx, totalMeals) {
+  let count = 0;
+  for (let i = 0; i < totalMeals; i++) { if (getCompletion(plan, weekIdx, dayIdx, i)) count++; }
+  return count;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDERIZADO VISUAL
+// ═══════════════════════════════════════════════════════════════
+function renderPlanGrid() {
+  const grid = document.getElementById('plan-grid');
+  grid.innerHTML = Object.entries(PLAN_META).map(([id, m]) => `
+    <div class="plan-card ${state.plan === id ? 'active' : ''}" onclick="selectPlan('${id}')">
+      <div class="icon">${m.emoji}</div>
+      <div class="name">${m.label}</div>
+      <div class="range">${m.range}</div>
+      <div class="range" style="margin-top:6px;font-size:10px;color:var(--amber)">${m.kcalRange}</div>
+    </div>
+  `).join('');
+}
+
+function selectPlan(planId) {
+  state.plan = planId; state.week = 0; state.day = null;
+  renderPlanGrid(); renderNavSection();
+  document.getElementById('nav-section').classList.remove('hidden');
+  document.getElementById('month-progress-bar').style.display = 'flex';
+  document.getElementById('daily-panel').classList.remove('visible');
+  updateMonthProgress();
+  setTimeout(() => document.getElementById('nav-section').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+function renderNavSection() {
+  document.getElementById('week-tabs').innerHTML = WEEKS.map((w, i) => `
+    <div class="week-tab ${state.week === i ? 'active' : ''}" onclick="selectWeek(${i})">${w}</div>
+  `).join('');
+  renderDayRow();
+}
+
+function selectWeek(weekIdx) {
+  state.week = weekIdx; state.day = null;
+  renderNavSection();
+  document.getElementById('daily-panel').classList.remove('visible');
+}
+
+function renderDayRow() {
+  const weekData = MEALS[state.plan]?.[`w${state.week + 1}`] || [];
+  const weekStart = state.week * 7 + 1;
+  document.getElementById('day-row').innerHTML = DAYS.map((day, i) => {
+    const totalMeals = weekData[i]?.meals?.length || 4;
+    const complete = totalMeals > 0 && countDayProgress(state.plan, state.week, i, totalMeals) === totalMeals;
+    // Mostrar fecha real del calendario
+    const realDateStr = dayKey(state.week, i);
+    const [ry, rm, rd] = realDateStr.split('-').map(Number);
+    const realDate = new Date(ry, rm - 1, rd);
+    const todayStr = todayKey();
+    const isToday = realDateStr === todayStr;
+    const dayNumDisplay = rd; // día del mes
+    return `
+      <div class="day-btn ${state.day === i ? 'active' : ''} ${complete ? 'completed-day' : ''} ${isToday ? 'today-btn' : ''}" onclick="selectDay(${i})" title="${realDateStr}">
+        <div class="day-name">${day.substring(0,3)}</div>
+        <div class="day-num">${dayNumDisplay}</div>
+        <div class="day-dot"></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectDay(dayIdx) {
+  state.day = dayIdx;
+  renderNavSection(); renderDailyPanel();
+  document.getElementById('daily-panel').classList.add('visible');
+  setTimeout(() => document.getElementById('daily-panel').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+function renderDailyPanel() {
+  const dayData = MEALS[state.plan]?.[`w${state.week + 1}`]?.[state.day];
+  if (!dayData) return;
+
+  document.getElementById('daily-title').textContent = `${DAYS[state.day]} — Semana ${state.week + 1}`;
+  if (dayData.macros) {
+    document.getElementById('daily-macros').innerHTML = `
+      <div class="macro-pill">🔥 <span>${dayData.totalKcal}</span> kcal</div>
+      <div class="macro-pill">💪 P: <span>${dayData.macros.p}g</span></div>
+      <div class="macro-pill">⚡ C: <span>${dayData.macros.c}g</span></div>
+      <div class="macro-pill">🫒 G: <span>${dayData.macros.g}g</span></div>
+    `;
+  }
+
+  const completed = countDayProgress(state.plan, state.week, state.day, dayData.meals.length);
+  document.getElementById('day-progress-fill').style.width = Math.round((completed / dayData.meals.length) * 100) + '%';
+
+  if (dayData.tip) {
+    document.getElementById('day-tip-text').textContent = dayData.tip;
+    document.getElementById('day-tip-card').classList.remove('hidden');
+  }
+
+  const cfgTypes = {
+    'Desayuno': { bgClass: 't-desayuno', tagClass: 'tag-desayuno', icon: '🌅' },
+    'Snack AM': { bgClass: 't-snack', tagClass: 'tag-snack', icon: '🍎' },
+    'Almuerzo': { bgClass: 't-almuerzo', tagClass: 'tag-almuerzo', icon: '☀️' },
+    'Snack PM': { bgClass: 't-snack', tagClass: 'tag-snack', icon: '🌿' },
+    'Cena': { bgClass: 't-cena', tagClass: 'tag-cena', icon: '🌙' }
+  };
+
+  document.getElementById('meals-list').innerHTML = dayData.meals.map((meal, i) => {
+    const cfg = cfgTypes[meal.type] || { bgClass: 't-snack', tagClass: 'tag-snack', icon: '🍽️' };
+    const done = getCompletion(state.plan, state.week, state.day, i);
+    const mTotal = dayData.macros ? (dayData.macros.p + dayData.macros.c + dayData.macros.g) : 1;
+    const pPct = Math.round((dayData.macros.p / mTotal) * 100);
+    const cPct = Math.round((dayData.macros.c / mTotal) * 100);
+    const gPct = Math.round((dayData.macros.g / mTotal) * 100);
+
+    return `
+      <div class="meal-card ${done ? 'done' : ''}" id="meal-card-${i}">
+        <div class="meal-head" onclick="toggleMealExpand(${i})">
+          <div class="meal-time-icon ${cfg.bgClass}">${cfg.icon}</div>
+          <div class="meal-meta">
+            <div class="meal-type-row"><span class="meal-type-tag ${cfg.tagClass}">${meal.type}</span><span class="meal-cal">${meal.cal}</span></div>
+            <div class="meal-name">${meal.name}</div>
+            <div class="meal-desc">${meal.desc}</div>
+          </div>
+          <div class="meal-check-wrap" onclick="event.stopPropagation()">
+            <input type="checkbox" class="meal-check" id="chk-${i}" ${done ? 'checked' : ''} onchange="toggleMealDone(${i}, this)">
+            <label for="chk-${i}" class="meal-check-label">Hecho</label>
+          </div>
+          <div class="chevron">▼</div>
+        </div>
+        <div class="recipe-detail" id="recipe-${i}">
+          <div class="recipe-tabs">
+            <div class="recipe-tab active" id="tab-nutr-${i}" onclick="switchRecipeTab(${i},'nutr')">📊 Nutrición</div>
+            <div class="recipe-tab" id="tab-ing-${i}" onclick="switchRecipeTab(${i},'ing')">🛒 Ingredientes</div>
+            <div class="recipe-tab" id="tab-prep-${i}" onclick="switchRecipeTab(${i},'prep')">👨‍🍳 Preparación</div>
+          </div>
+          <!-- NUTRITION -->
+          <div class="recipe-pane active" id="pane-nutr-${i}">
+            <div class="macros-grid">
+              <div class="macro-box"><div class="macro-val">${meal.cal.replace(' kcal','')}</div><div class="macro-lbl">Calorías</div></div>
+              <div class="macro-box"><div class="macro-val">${meal.protein}g</div><div class="macro-lbl">Proteínas</div></div>
+              <div class="macro-box"><div class="macro-val">${meal.carbs}g</div><div class="macro-lbl">Carbohidratos</div></div>
+              <div class="macro-box" style="grid-column:1"><div class="macro-val">${meal.fat}g</div><div class="macro-lbl">Grasas</div></div>
+            </div>
+            <div class="macro-bar-section">
+              <div class="mbar-row"><div class="mbar-labels"><span class="mbar-name">Proteínas</span><span class="mbar-pct">${pPct}%</span></div><div class="mbar"><div class="mbar-fill bar-prot" style="width:${pPct}%"></div></div></div>
+              <div class="mbar-row"><div class="mbar-labels"><span class="mbar-name">Carbs</span><span class="mbar-pct">${cPct}%</span></div><div class="mbar"><div class="mbar-fill bar-carb" style="width:${cPct}%"></div></div></div>
+              <div class="mbar-row"><div class="mbar-labels"><span class="mbar-name">Grasas</span><span class="mbar-pct">${gPct}%</span></div><div class="mbar"><div class="mbar-fill bar-gras" style="width:${gPct}%"></div></div></div>
+            </div>
+            <div class="benefits-list">${meal.benefits.map(b => `<div class="benefit-item"><span class="benefit-icon">✓</span>${b}</div>`).join('')}</div>
+          </div>
+          <!-- INGREDIENTS -->
+          <div class="recipe-pane" id="pane-ing-${i}">
+            <div class="time-diff-row">
+              <div class="info-chip"><div class="ic-icon">⏱️</div><div class="ic-label">Tiempo</div><div class="ic-value">${meal.time}</div></div>
+              <div class="info-chip"><div class="ic-icon">⚡</div><div class="ic-label">Dificultad</div><div class="ic-value">${meal.diff}</div></div>
+            </div>
+            <div class="ingredients-list">${meal.ingredients.map(ing => `<div class="ing-item"><div class="ing-dot"></div>${ing}</div>`).join('')}</div>
+          </div>
+          <!-- PREPARATION -->
+          <div class="recipe-pane" id="pane-prep-${i}">
+            <div class="steps-list">${meal.steps.map((step, si) => `<div class="step-item"><div class="step-num">${si + 1}</div><div class="step-content"><div class="step-title">${step.t}</div><div class="step-body">${step.b}</div></div></div>`).join('')}</div>
+            <div class="tip-box"><div class="tip-icon">💡</div><div class="tip-text"><strong>Consejo:</strong> ${meal.tip}</div></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleMealExpand(i) {
+  const card = document.getElementById(`meal-card-${i}`);
+  const isExpanded = card.classList.contains('expanded');
+  document.querySelectorAll('.meal-card').forEach(c => c.classList.remove('expanded'));
+  document.querySelectorAll('.recipe-detail').forEach(d => d.classList.remove('open'));
+  if (!isExpanded) { card.classList.add('expanded'); document.getElementById(`recipe-${i}`).classList.add('open'); }
+}
+
+function switchRecipeTab(mealIdx, tab) {
+  ['nutr','ing','prep'].forEach(t => {
+    document.getElementById(`tab-${t}-${mealIdx}`)?.classList.toggle('active', t === tab);
+    document.getElementById(`pane-${t}-${mealIdx}`)?.classList.toggle('active', t === tab);
+  });
+}
+
+function toggleMealDone(mealIdx, checkbox) {
+  setCompletion(state.plan, state.week, state.day, mealIdx, checkbox.checked);
+  document.getElementById(`meal-card-${mealIdx}`).classList.toggle('done', checkbox.checked);
+
+  const total = MEALS[state.plan][`w${state.week + 1}`][state.day].meals.length;
+  const completed = countDayProgress(state.plan, state.week, state.day, total);
+  logMealCompletion(PAGE_ID, completed, total);
+  const pct = Math.round((completed / total) * 100);
+  document.getElementById('day-progress-fill').style.width = pct + '%';
+
+  updateMonthProgress(); renderDayRow();
+  if (pct === 100) setTimeout(() => document.getElementById('modal').classList.add('open'), 400);
+}
+
+function updateMonthProgress() {
+  const completed = countCompletedDays(state.plan);
+  document.getElementById('month-bar-fill').style.width = Math.round((completed/28)*100) + '%';
+  document.getElementById('month-stat-text').textContent = `${completed} / 28 días completados`;
+  document.getElementById('month-label-text').textContent = `${PLAN_META[state.plan].label} — Plan Mensual Sin Lactosa`;
+  document.getElementById('month-detail-text').textContent = `${PLAN_META[state.plan].icon} • ${PLAN_META[state.plan].kcalRange}`;
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+document.addEventListener('DOMContentLoaded', renderPlanGrid);
+
+</script>
+</body>
+</html>

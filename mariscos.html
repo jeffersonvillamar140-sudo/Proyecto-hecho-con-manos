@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeBite Plus — Plan Nutricional Libre de Mariscos</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sage: #c0392b;      /* Adaptado a tonos más cálidos/alerta para alergias, pero manteniendo elegancia */
+  --sage-light: #e74c3c;
+  --sage-pale: #fdedec;
+  --amber: #d4820a;
+  --amber-light: #f5a623;
+  --amber-pale: #fef3dc;
+  --cream: #faf8f4;
+  --dark: #2c3e50;
+  --mid: #34495e;
+  --text: #2d3e33;
+  --text-light: #7f8c8d;
+  --border: #eaeded;
+  --white: #ffffff;
+  --card-radius: 20px;
+  --shadow: 0 4px 24px rgba(192, 57, 43, 0.08);
+  --shadow-lg: 0 12px 48px rgba(192, 57, 43, 0.15);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+
+/* ── LAYOUT ── */
+.app-shell { max-width: 1100px; margin: 0 auto; padding: 0 16px 80px; }
+
+/* ── HEADER ── */
+.app-header { padding: 32px 0 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.app-logo { font-family: 'Syne', sans-serif; font-size: clamp(28px,5vw,44px); font-weight: 800; color: var(--dark); letter-spacing: -1px; }
+.app-logo span { color: var(--sage); }
+.app-sub { font-size: 14px; color: var(--text-light); letter-spacing: 0.5px; font-weight: 500; }
+.gluten-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--amber); color: white; padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+/* ── PROGRESS HEADER ── */
+.month-header { display: flex; align-items: center; justify-content: space-between; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--card-radius); padding: 18px 24px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.month-label { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--dark); }
+.month-progress { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.month-bar-wrap { width: 180px; height: 8px; background: var(--sage-pale); border-radius: 4px; overflow: hidden; }
+.month-bar-fill { height: 100%; background: linear-gradient(90deg, var(--amber), var(--amber-light)); border-radius: 4px; transition: width 0.6s ease; }
+.month-stat { font-size: 12px; color: var(--text-light); font-weight: 600; }
+
+/* ── PLAN SELECTOR ── */
+.section-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; }
+.plan-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 28px; }
+.plan-card { border: 2px solid var(--border); border-radius: var(--card-radius); background: var(--white); padding: 18px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; }
+.plan-card:hover { border-color: var(--sage-light); box-shadow: var(--shadow); transform: translateY(-2px); }
+.plan-card.active { border-color: var(--sage); background: var(--sage-pale); }
+.plan-card .icon { font-size: 32px; margin-bottom: 8px; }
+.plan-card .name { font-weight: 700; font-size: 13px; color: var(--dark); }
+.plan-card .range { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.plan-card.active .name { color: var(--sage); }
+
+/* ── WEEK / DAY NAVIGATION ── */
+.nav-section { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--card-radius); overflow: hidden; margin-bottom: 24px; box-shadow: var(--shadow); }
+.week-tabs { display: flex; border-bottom: 1.5px solid var(--border); }
+.week-tab { flex: 1; padding: 12px 8px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-light); cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; text-transform: uppercase; }
+.week-tab:hover { background: var(--sage-pale); color: var(--sage); }
+.week-tab.active { background: var(--sage); color: white; }
+.day-row { display: grid; grid-template-columns: repeat(7,1fr); padding: 12px; gap: 8px; }
+.day-btn { border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 4px; text-align: center; cursor: pointer; background: var(--white); transition: all 0.2s; position: relative; }
+.day-btn:hover { border-color: var(--sage-light); background: var(--sage-pale); }
+.day-btn.active { border-color: var(--sage); background: var(--sage); color: white; }
+.day-btn.active .day-name, .day-btn.active .day-num { color: white; }
+.day-btn.completed-day::after { content: '✓'; position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; background: var(--amber); border-radius: 50%; font-size: 9px; font-weight: 900; color: white; display: flex; align-items: center; justify-content: center; }
+.day-name { font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+.day-num { font-size: 16px; font-weight: 800; color: var(--dark); margin-top: 2px; }
+.day-dot { width: 6px; height: 6px; border-radius: 3px; background: var(--border); margin: 4px auto 0; }
+.day-btn.completed-day .day-dot { background: var(--amber-light); }
+.day-btn.today-btn { outline: 2px solid var(--sage); outline-offset: 2px; }
+
+
+/* ── DAILY PANEL ── */
+.daily-panel { display: none; }
+.daily-panel.visible { display: block; }
+.daily-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.daily-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--dark); }
+.daily-macros { display: flex; gap: 10px; flex-wrap: wrap; }
+.macro-pill { background: var(--sage-pale); border: 1px solid var(--sage-light); border-radius: 12px; padding: 6px 12px; font-size: 11px; font-weight: 700; color: var(--sage); display: flex; gap: 4px; align-items: center; }
+.macro-pill span { color: var(--amber); }
+.day-progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+.day-progress-fill { height: 100%; background: linear-gradient(90deg, var(--sage), var(--sage-light)); border-radius: 3px; transition: width 0.5s; }
+
+/* ── MEAL CARDS ── */
+.meals-list { display: flex; flex-direction: column; gap: 16px; }
+.meal-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--card-radius); overflow: hidden; box-shadow: var(--shadow); transition: all 0.25s; }
+.meal-card.done { border-color: var(--sage-light); background: linear-gradient(135deg, var(--white), var(--sage-pale)); }
+.meal-head { display: flex; align-items: flex-start; gap: 14px; padding: 18px 18px 14px; cursor: pointer; }
+.meal-time-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.meal-meta { flex: 1; min-width: 0; }
+.meal-type-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.meal-type-tag { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 3px 8px; border-radius: 6px; }
+.meal-cal { font-size: 11px; font-weight: 700; color: var(--text-light); margin-left: auto; }
+.meal-name { font-weight: 800; font-size: 15px; color: var(--dark); line-height: 1.2; }
+.meal-desc { font-size: 12px; color: var(--text-light); margin-top: 3px; line-height: 1.4; }
+.meal-check-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; padding-top: 2px; }
+.meal-check { width: 26px; height: 26px; accent-color: var(--sage); cursor: pointer; border-radius: 6px; }
+.meal-check-label { font-size: 9px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+.chevron { font-size: 14px; color: var(--text-light); transition: transform 0.3s; flex-shrink: 0; margin-top: 4px; }
+.meal-card.expanded .chevron { transform: rotate(180deg); }
+
+/* ── RECIPE DETAIL ── */
+.recipe-detail { display: none; border-top: 1.5px solid var(--border); }
+.recipe-detail.open { display: block; }
+.recipe-tabs { display: flex; border-bottom: 1.5px solid var(--border); }
+.recipe-tab { flex: 1; padding: 11px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-light); cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
+.recipe-tab.active { background: var(--amber-pale); color: var(--amber); border-bottom: 2px solid var(--amber); }
+.recipe-pane { padding: 20px 18px; display: none; }
+.recipe-pane.active { display: block; }
+
+/* Nutrition & Info */
+.macros-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+.macro-box { text-align: center; background: var(--sage-pale); border-radius: 14px; padding: 14px 8px; }
+.macro-val { font-size: 22px; font-weight: 900; color: var(--amber); }
+.macro-lbl { font-size: 10px; font-weight: 700; color: var(--sage); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.macro-bar-section { margin-top: 14px; }
+.mbar-row { margin-bottom: 10px; }
+.mbar-labels { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.mbar-name { font-size: 12px; font-weight: 700; color: var(--text); }
+.mbar-pct { font-size: 12px; font-weight: 700; color: var(--text-light); }
+.mbar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.mbar-fill { height: 100%; border-radius: 4px; }
+.benefits-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.benefit-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--text); line-height: 1.4; }
+.benefit-icon { color: var(--sage-light); font-weight: 900; flex-shrink: 0; }
+
+.time-diff-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.info-chip { background: var(--sage-pale); border-radius: 14px; padding: 12px; text-align: center; }
+.info-chip .ic-icon { font-size: 20px; }
+.info-chip .ic-label { font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.info-chip .ic-value { font-size: 14px; font-weight: 800; color: var(--dark); margin-top: 1px; }
+.ingredients-list { display: flex; flex-direction: column; gap: 8px; }
+.ing-item { display: flex; align-items: center; gap: 10px; background: var(--cream); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; font-size: 13px; color: var(--text); font-weight: 500; }
+.ing-dot { width: 8px; height: 8px; border-radius: 4px; background: var(--amber); flex-shrink: 0; }
+
+.steps-list { display: flex; flex-direction: column; gap: 12px; }
+.step-item { display: flex; gap: 14px; }
+.step-num { width: 32px; height: 32px; border-radius: 10px; background: var(--sage); color: white; font-size: 13px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.step-content { flex: 1; }
+.step-title { font-weight: 700; font-size: 13px; color: var(--dark); margin-bottom: 3px; }
+.step-body { font-size: 12px; color: var(--text-light); line-height: 1.6; }
+.tip-box { background: var(--amber-pale); border: 1.5px solid #f0d080; border-radius: 14px; padding: 14px 16px; margin-top: 14px; display: flex; gap: 10px; align-items: flex-start; }
+.tip-icon { font-size: 18px; flex-shrink: 0; }
+.tip-text { font-size: 12px; color: #7a5a00; font-weight: 500; line-height: 1.5; }
+
+/* ── NAV TIP CARD ── */
+.day-tip-card { background: linear-gradient(135deg, var(--sage), var(--sage-light)); border-radius: var(--card-radius); padding: 20px; margin-top: 16px; color: white; display: flex; gap: 12px; align-items: flex-start; }
+.day-tip-icon { font-size: 24px; flex-shrink: 0; }
+.day-tip-text { font-size: 13px; line-height: 1.5; font-weight: 500; opacity: 0.95; }
+.day-tip-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; margin-bottom: 4px; }
+
+/* ── MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal-box { background: var(--white); border-radius: 24px; max-width: 480px; width: 100%; padding: 40px 32px; text-align: center; box-shadow: var(--shadow-lg); }
+.modal-emoji { font-size: 64px; margin-bottom: 16px; }
+.modal-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; color: var(--dark); margin-bottom: 12px; }
+.modal-text { font-size: 14px; color: var(--text-light); line-height: 1.7; margin-bottom: 24px; }
+.modal-brand { font-weight: 800; color: var(--sage); }
+.modal-btn { background: var(--sage); color: white; border: none; padding: 14px 36px; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
+.modal-btn:hover { background: var(--sage-light); transform: translateY(-2px); }
+
+/* ── COLORS ── */
+.t-desayuno { background: #fff8e8; }
+.tag-desayuno { background: #fff0c8; color: #b37600; }
+.t-snack { background: #fdf2e9; }
+.tag-snack { background: #fadbd8; color: #922b21; }
+.t-almuerzo { background: #e8f0ff; }
+.tag-almuerzo { background: #d0dfff; color: #2244b3; }
+.t-cena { background: #f0e8f4; }
+.tag-cena { background: #e0d0ec; color: #6b2c9a; }
+
+.bar-prot { background: linear-gradient(90deg, #f5a623, #f0c060); }
+.bar-carb { background: linear-gradient(90deg, #3d9bd4, #64b8e8); }
+.bar-gras { background: linear-gradient(90deg, #e05c3a, #f08060); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .plan-grid { grid-template-columns: 1fr; }
+  .macros-grid { grid-template-columns: repeat(3,1fr); }
+  .time-diff-row { grid-template-columns: 1fr 1fr; }
+  .daily-header { flex-direction: column; align-items: flex-start; }
+  .month-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .month-bar-wrap { width: 100%; }
+  .week-tabs { overflow-x: auto; }
+  .week-tab { min-width: 70px; }
+}
+.hidden { display: none !important; }
+.back-btn{
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 9999;
+    background: var(--sage);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(22,163,74,.25);
+    transition: all .2s ease;
+}
+.back-btn:hover{
+    background: var(--mid);
+    transform: translateY(-2px);
+}
+
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="app-logo">Safe<span>Bite</span> Plus</div>
+    <div class="app-sub">Plan Nutricional Personalizado</div>
+    <span class="gluten-badge">🦐 100% Libre de Mariscos</span>
+  </header>
+
+<button class="back-btn" onclick="goBackToIndex()">
+    ← Regresar
+</button>
+  <!-- MONTHLY PROGRESS -->
+  <div class="month-header" id="month-progress-bar" style="display:none">
+    <div>
+      <div class="month-label" id="month-label-text">Mes 1 — Plan de 4 Semanas</div>
+      <div style="font-size:12px;color:var(--text-light);margin-top:4px" id="month-detail-text">Selecciona un día para comenzar</div>
+    </div>
+    <div class="month-progress">
+      <div class="month-bar-wrap"><div class="month-bar-fill" id="month-bar-fill" style="width:0%"></div></div>
+      <div class="month-stat" id="month-stat-text">0 / 28 días completados</div>
+    </div>
+  </div>
+
+  <!-- PLAN SELECTION -->
+  <div class="section-title">① Selecciona tu plan según tu IMC</div>
+  <div class="plan-grid" id="plan-grid"></div>
+
+  <!-- WEEK / DAY NAV -->
+  <div class="nav-section hidden" id="nav-section">
+    <div class="week-tabs" id="week-tabs"></div>
+    <div class="day-row" id="day-row"></div>
+  </div>
+
+  <!-- DAILY PANEL -->
+  <div class="daily-panel" id="daily-panel">
+    <div class="daily-header">
+      <div class="daily-title" id="daily-title">Selecciona un día</div>
+      <div class="daily-macros" id="daily-macros"></div>
+    </div>
+    <div class="day-progress-bar"><div class="day-progress-fill" id="day-progress-fill" style="width:0%"></div></div>
+    <div class="meals-list" id="meals-list"></div>
+    <div class="day-tip-card hidden" id="day-tip-card">
+      <div class="day-tip-icon">💡</div>
+      <div><div class="day-tip-label">Tip del día</div><div class="day-tip-text" id="day-tip-text"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-emoji">🏆</div>
+    <div class="modal-title">¡Día Completado!</div>
+    <div class="modal-text">¡Excelente trabajo! Has completado tus comidas. <span class="modal-brand">SafeBite Plus</span> está orgulloso de tu constancia en mantener un régimen seguro y equilibrado.</div>
+    <button class="modal-btn" onclick="closeModal()">¡A seguir! 💪</button>
+  </div>
+</div>
+
+<script>
+const PLAN_META = {
+  sobrepeso: { label: 'Bajo en Calorías', emoji: '📉', range: 'IMC > 25', icon: '⬇️ Déficit calórico', kcalRange: '1400–1600 kcal' },
+  normal:    { label: 'Mantenimiento',    emoji: '✨', range: 'IMC 18.5–24.9', icon: '⚖️ Balance calórico', kcalRange: '1800–2000 kcal' },
+  bajo:      { label: 'Ganancia de masa', emoji: '💪', range: 'IMC < 18.5', icon: '⬆️ Superávit calórico', kcalRange: '2200–2600 kcal' }
+};
+
+const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const WEEKS = ['Semana 1','Semana 2','Semana 3','Semana 4'];
+
+function buildMeal(type, name, desc, cal, protein, carbs, fat, ingredients, steps, tip, benefits, time, diff) {
+  return { type, name, desc, cal, protein, carbs, fat, ingredients, steps, tip, benefits, time: time||'25 min', diff: diff||'Fácil' };
+}
+
+// ── RECETAS MEJORADAS Y ADAPTADAS PARA ALERGIAS A MARISCOS ──
+const MEALS = {
+  sobrepeso: {
+    w1: [
+      { day:'Lunes', tip:'💧 Tip: Bebe 2 litros de agua diaria. La hidratación es clave para optimizar procesos metabólicos.', totalKcal:1420, macros:{p:108,c:150,g:42},
+        meals:[
+          buildMeal('Desayuno','Tostada artesanal con aguacate y claras revueltas','Desayuno ligero y saciante que aporta grasas saludables y proteína limpia.','280 kcal',18,24,12,
+            ['1 rebanada gruesa de pan integral artesanal','3 claras de huevo pasteurizadas','¼ de aguacate Hass maduro','1 cucharadita de aceite de oliva virgen extra','Pizca de sal marina y pimienta negra'],
+            [{t:'Preparar base',b:'Tostar el pan hasta que esté firme y dorado para soportar la humedad del aguacate sin romperse.'},{t:'Cocción de proteínas',b:'Calentar una sartén a fuego bajo. Cocinar las claras suavemente removiendo con espátula de silicona hasta coagular (aprox 70°C).'},{t:'Ensamblaje',b:'Machacar el aguacate y untar sobre la tostada. Colocar las claras revueltas por encima y sazonar.'}],
+            'Asegúrate de cocinar las claras completamente para desnaturalizar la avidina y mejorar la absorción de biotina.',
+            ['Grasas monoinsaturadas del aguacate protegen la salud cardiovascular','Alta biodisponibilidad proteica en claras sin sumar grasas saturadas']),
+          buildMeal('Snack AM','Yogur de coco natural con semillas','Snack con probióticos, ideal para flora intestinal.','120 kcal',3,15,6,
+            ['150g de yogur de coco natural sin azúcar','1 cucharadita de semillas de cáñamo o chía'],
+            [{t:'Servir',b:'Verter el yogur manteniendo la cadena de frío (refrigeración a 4°C). Añadir las semillas por encima.'}],
+            'Mantenlo refrigerado hasta el consumo para preservar la viabilidad de las bacterias ácido-lácticas.',
+            ['Alternativa láctea baja en inflamación','Rico en triglicéridos de cadena media (MCT)']),
+          buildMeal('Almuerzo','Pechuga de pavo grillada con quinoa y espárragos','Sustituto seguro del salmón: proteína magra sin riesgo de contaminación cruzada marina.','420 kcal',35,45,10,
+            ['150g de filete de pechuga de pavo fresco','½ taza de quinoa cocida (lavada previamente)','8 espárragos verdes frescos','Jugo de limón, orégano y sal'],
+            [{t:'Inocuidad',b:'Manipular el pavo crudo con utensilios exclusivos. Sazonar con limón y orégano.'},{t:'Cocción segura',b:'Cocinar en plancha a fuego medio-alto hasta que el centro térmico alcance 74°C, asegurando eliminación bacteriana.'},{t:'Guarnición',b:'Blanquear los espárragos en agua hirviendo por 3 minutos y cortar cocción en agua fría. Servir con la quinoa.'}],
+            'Lavar la quinoa elimina las saponinas, mejorando el sabor y evitando problemas gastrointestinales.',
+            ['El pavo es rico en triptófano y vitaminas del complejo B','La quinoa provee los 9 aminoácidos esenciales']),
+          buildMeal('Snack PM','Manzana verde crujiente','Fruta fresca rica en pectina para saciedad prolongada.','80 kcal',0,21,0,
+            ['1 manzana verde tipo Granny Smith'],
+            [{t:'Preparación',b:'Lavar la manzana bajo un chorro de agua frotando la superficie. Consumir con piel para aprovechar la fibra insoluble.'}],
+            'La textura firme requiere masticación vigorosa, lo que envía señales de saciedad al cerebro más rápidamente.',
+            ['Regula los niveles de glucosa en sangre','Aporta hidratación adicional celular']),
+          buildMeal('Cena','Crema ligera de calabaza criolla','Cena reconfortante, de fácil digestión térmica.','150 kcal',4,26,4,
+            ['2 tazas de calabaza pelada y troceada','¼ de cebolla perla picada','1 taza de caldo de vegetales claro','1 cucharadita de aceite de oliva'],
+            [{t:'Sofrito',b:'Sudar la cebolla en aceite de oliva sin dejar que dore para no amargar la crema.'},{t:'Cocción',b:'Añadir la calabaza y el caldo. Hervir por 15 minutos hasta ablandar la matriz estructural del vegetal.'},{t:'Licuado',b:'Procesar hasta obtener una emulsión tersa y homogénea. Servir caliente.'}],
+            'Para preservar el color vibrante (betacarotenos), no sobrecocines la calabaza más allá de lo necesario.',
+            ['Alto contenido de provitamina A para la salud visual','Baja densidad calórica ideal para el descanso nocturno'])
+        ]
+      },
+      { day:'Martes', tip:'🥢 Tip: La digestión comienza en la boca. Masticar la comida activa amilasas y mejora la asimilación.', totalKcal:1480, macros:{p:115,c:142,g:48},
+        meals:[
+          buildMeal('Desayuno','Batido proteico de fresa y chía','Densidad nutricional rápida para empezar el día.','220 kcal',15,28,6,
+            ['1 taza de fresas frescas o congeladas','1 scoop de proteína de origen vegetal o suero (aislada)','1 cucharada de chía hidratada','1 taza de agua o leche vegetal'],
+            [{t:'Hidratación',b:'Remojar la chía en agua por 10 minutos para formar el mucílago.'},{t:'Procesado',b:'Licuar las fresas, la proteína y el líquido a alta velocidad para romper las fibras y estabilizar la mezcla.'}],
+            'El mucílago de la chía retarda el vaciamiento gástrico, prolongando la sensación de llenura.',
+            ['Vitamina C de las fresas para síntesis de colágeno','Proteína de rápida absorción para el tejido muscular']),
+          buildMeal('Snack AM','Mix de nueces y manzana','Equilibrio perfecto de carbohidratos simples y grasas complejas.','150 kcal',3,18,8,
+            ['½ manzana verde cortada en gajos','15g de nueces peladas'],
+            [{t:'Consumo',b:'Alternar bocados de manzana y nueces para un perfil sensorial contrastante.'}],
+            'Las nueces son susceptibles a la oxidación lipídica (rancidez); almacénalas en envases herméticos lejos de la luz.',
+            ['Rico en ácido alfa-linolénico (Omega-3)','Fibra prebiótica para el intestino']),
+          buildMeal('Almuerzo','Seco de Pollo ligero con arroz integral','Adaptación nutricional del plato tradicional, optimizando la digestibilidad.','480 kcal',40,55,12,
+            ['150g de pechuga o pierna de pollo sin piel','½ taza de arroz integral cocido','Salsa base: naranjilla (lulo), cilantro, cebolla morada, pimiento, ajo, achiote','1 cucharadita de aceite'],
+            [{t:'Marinado',b:'Sazonar el pollo con ajo, comino y achiote.'},{t:'Base aromática',b:'Licuar naranjilla, cebolla, pimiento y cilantro.'},{t:'Cocción',b:'Sellar el pollo en una olla. Añadir la salsa licuada y estofar tapado a fuego lento durante 25 minutos. Verificar que la temperatura interna del pollo alcance mínimo 74°C.'}],
+            'La acidez de la naranjilla no solo da sabor, sino que actúa como ablandador natural degradando las fibras musculares del pollo.',
+            ['Proteína aviar de alto valor biológico','Cilantro provee potentes antioxidantes naturales']),
+          buildMeal('Snack PM','Cubo de papaya fresca','Fruta enzimática que facilita procesos digestivos post-almuerzo.','90 kcal',1,22,0,
+            ['1 taza de papaya picada en cubos'],
+            [{t:'Corte',b:'Pelar y retirar las semillas de la papaya. Cortar en cubos simétricos para un enfriamiento uniforme.'}],
+            'Si la papaya no está completamente madura, déjala a temperatura ambiente junto a una banana (gas etileno acelera maduración).',
+            ['Aporta papaína, una enzima proteolítica que ayuda a digerir proteínas','Rica en licopeno biodisponible']),
+          buildMeal('Cena','Tortilla de champiñones y espárragos','Cena estructuralmente ligera y rica en micronutrientes.','340 kcal',24,12,22,
+            ['2 huevos enteros pasteurizados','½ taza de champiñones laminados','6 espárragos troceados','1 cucharadita de aceite de oliva'],
+            [{t:'Salteado vegetal',b:'Saltear a fuego alto los champiñones para evaporar su agua rápidamente. Añadir los espárragos.'},{t:'Coagulación',b:'Batir los huevos ligeramente e incorporar a la sartén. Cocinar a fuego medio tapado hasta que la superficie esté firme.'}],
+            'El champiñón es higroscópico y suelta mucha agua; saltearlo a fuego fuerte concentra sus compuestos de sabor (umami).',
+            ['Perfil aminoacídico completo en los huevos','Los espárragos actúan como diurético natural suave'])
+        ]
+      },
+      { day:'Miércoles', tip:'🚶 Tip: Camina 30 min después de comer. El movimiento favorece la motilidad intestinal y controla glucemia.', totalKcal:1450, macros:{p:110,c:145,g:45},
+        meals:[
+          buildMeal('Desayuno','Arepa/Tortilla de maíz con pollo desmechado','Desayuno denso y energético con carbohidratos complejos.','350 kcal',22,40,10,
+            ['1 tortilla gruesa de maíz (tipo arepa) asada','80g de pechuga de pollo desmechada','2 cucharadas de tomate y cebolla finamente picados (hogao)'],
+            [{t:'Relleno',b:'Mezclar el pollo cocido con el sofrito de tomate y cebolla.'},{t:'Armado',b:'Abrir la tortilla por la mitad y rellenar. Calentar en plancha hasta que la corteza esté crujiente.'}],
+            'El maíz nixtamalizado aumenta significativamente la biodisponibilidad de niacina (Vitamina B3) y calcio.',
+            ['Energía sostenida gracias al almidón del maíz','Proteína magra para arrancar el metabolismo basal']),
+          buildMeal('Snack AM','Yogur natural con durazno','Sinergia de textura láctea y frescor frutal.','130 kcal',8,18,3,
+            ['100g de yogur griego o natural','½ durazno fresco picado'],
+            [{t:'Preparación',b:'Picar el durazno al momento de consumir para evitar el pardeamiento enzimático (oxidación).'}],
+            'Si usas durazno en conserva, asegúrate que esté en su propio jugo y no en almíbar azucarado.',
+            ['Aporta calcio asimilable','El durazno es buena fuente de potasio celular']),
+          buildMeal('Almuerzo','Lomito de ternera salteada con brócoli','Cocción rápida (tipo Wok) para preservar textura y vitaminas.','460 kcal',38,35,18,
+            ['150g de lomo de res cortado en tiras finas','1 taza de floretes de brócoli crujientes','1 cucharada de salsa de soya oscura (sin gluten/tamari)','1 cucharadita de aceite de ajonjolí'],
+            [{t:'Sellado',b:'En un wok muy caliente, sellar la ternera rápidamente por 2 minutos para evitar que se deshidrate (reacción de Maillard). Retire y reserve.'},{t:'Salteado vegetal',b:'Saltear el brócoli por 3 minutos con gotas de agua para generar vapor.'},{t:'Integración',b:'Regresar la carne, añadir la salsa tamari y retirar del fuego inmediatamente.'}],
+            'Cortar la res transversalmente a la fibra muscular rompe el tejido conectivo, resultando en cortes mucho más tiernos.',
+            ['Hierro hemo de la carne de res, de máxima absorción','El brócoli aporta sulforafanos, potentes agentes detoxificadores']),
+          buildMeal('Snack PM','Galletas de arroz con crema de maní','Snack crocante para calmar ansiedad vespertina.','140 kcal',5,16,6,
+            ['2 galletas de arroz inflado integrales','1 cucharada de mantequilla de maní 100% natural'],
+            [{t:'Preparación',b:'Untar cuidadosamente la crema sobre las galletas.'}],
+            'Verifica en la etiqueta del maní que los ingredientes sean solo "Maní" (sin aceites hidrogenados ni azúcares).',
+            ['Aporta energía rápida y grasas saciantes','Alternativa perfecta para perfiles sin gluten']),
+          buildMeal('Cena','Ensalada tibia de garbanzos y atún vegetal','Reestructuración para perfil sin mariscos (usando legumbres y semillas).','370 kcal',18,48,12,
+            ['½ taza de garbanzos cocidos','1 cucharada de semillas de girasol tostadas (efecto textura atún)','Vegetales mixtos (lechuga, tomate, pepino)','Aderezo de limón y mostaza'],
+            [{t:'Texturización',b:'Triturar ligeramente los garbanzos con un tenedor mezclados con mostaza y semillas para simular la textura cárnica.'},{t:'Montaje',b:'Colocar la mezcla sobre una cama de vegetales frescos y aderezar.'}],
+            'Esta combinación vegetal iguala la saciedad de la proteína animal sin ningún riesgo de alérgenos marinos.',
+            ['Los garbanzos estabilizan el azúcar en sangre nocturna','Alto nivel de fibra dietética total'])
+        ]
+      }
+    ]
+  }
+};
+
+// Completar la data para la estructura requerida
+const basePlan = MEALS.sobrepeso.w1;
+for (let i = 3; i < 7; i++) {
+  basePlan.push({ ...basePlan[i % 3], day: DAYS[i], tip: 'Mantén la consistencia y cuida las temperaturas de cocción.' });
+}
+MEALS.normal = { w1: MEALS.sobrepeso.w1 };
+MEALS.bajo = { w1: MEALS.sobrepeso.w1 };
+
+// ═══════════════════════════════════════════════════════════════
+// LOGIC
+// ═══════════════════════════════════════════════════════════════
+// Vuelve a index.html conservando la sesión del usuario (pasada por URL al entrar aquí)
+function goBackToIndex() {
+    // Si esta pestaña fue abierta desde index.html (window.open), sincroniza
+    // el registro de comidas completadas directamente en esa pestaña antes de cerrar.
+    try {
+        if (window.opener && !window.opener.closed) {
+            const myLog = loadMealLog();
+            const openerLog = JSON.parse(window.opener.localStorage.getItem(MEAL_LOG_KEY) || '{}');
+            for (const date in myLog) {
+                if (!openerLog[date]) openerLog[date] = {};
+                Object.assign(openerLog[date], myLog[date]);
+            }
+            window.opener.localStorage.setItem(MEAL_LOG_KEY, JSON.stringify(openerLog));
+            if (typeof window.opener.refreshMealCalendar === 'function') {
+                window.opener.refreshMealCalendar();
+            }
+        }
+    } catch (e) {}
+
+    window.close();
+    // Si el navegador no permite cerrar (pestaña no abierta por script),
+    // regresamos como respaldo a la pestaña/pantalla de inicio, pasando
+    // también el registro de comidas por la URL.
+    setTimeout(() => {
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get('user');
+        let url = 'index.html';
+        const qp = new URLSearchParams();
+        if (email) {
+            qp.set('user', email);
+            const name = params.get('name');
+            const photo = params.get('photo');
+            if (name) qp.set('name', name);
+            if (photo) qp.set('photo', photo);
+        }
+        try {
+            qp.set('meallog', encodeURIComponent(JSON.stringify(loadMealLog())));
+        } catch (e) {}
+        const qs = qp.toString();
+        if (qs) url += '?' + qs;
+        window.location.href = url;
+    }, 300);
+}
+
+let state = { plan: null, week: 0, day: null };
+const LS_KEY = 'safebite_mariscos_progress';
+
+function loadProgress() { try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; } }
+function saveProgress(progress) { try { localStorage.setItem(LS_KEY, JSON.stringify(progress)); } catch {} }
+let progress = loadProgress();
+// ===== REGISTRO DE COMIDAS COMPLETADAS (para el calendario del index) =====
+const PAGE_ID = 'sin-mariscos';
+const MEAL_LOG_KEY = 'safebite_meal_log';
+const START_DATE_KEY = 'safebite_mariscos_startdate';
+
+function todayKey() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function getPlanStartDate() {
+  let saved = localStorage.getItem(START_DATE_KEY);
+  if (!saved) {
+    saved = todayKey();
+    localStorage.setItem(START_DATE_KEY, saved);
+  }
+  return saved;
+}
+
+function dayKey(weekIdx, dayIdx) {
+  const startStr = getPlanStartDate();
+  const [y, m, d] = startStr.split('-').map(Number);
+  const start = new Date(y, m - 1, d);
+  const offset = weekIdx * 7 + dayIdx;
+  const target = new Date(start);
+  target.setDate(start.getDate() + offset);
+  const yyyy = target.getFullYear();
+  const mm = String(target.getMonth() + 1).padStart(2, '0');
+  const dd = String(target.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function loadMealLog() {
+  try { return JSON.parse(localStorage.getItem(MEAL_LOG_KEY)) || {}; } catch { return {}; }
+}
+function saveMealLog(log) {
+  try { localStorage.setItem(MEAL_LOG_KEY, JSON.stringify(log)); } catch {}
+}
+function logMealCompletion(planId, doneCount, totalCount) {
+  const log = loadMealLog();
+  const key = dayKey(state.week, state.day);
+  if (!log[key]) log[key] = {};
+  log[key][planId] = { done: doneCount, total: totalCount };
+  saveMealLog(log);
+}
+
+
+function getCompletion(plan, weekIdx, dayIdx, mealIdx) { return !!progress?.[plan]?.[weekIdx]?.[dayIdx]?.[mealIdx]; }
+function setCompletion(plan, weekIdx, dayIdx, mealIdx, val) {
+  if (!progress[plan]) progress[plan] = {};
+  if (!progress[plan][weekIdx]) progress[plan][weekIdx] = {};
+  if (!progress[plan][weekIdx][dayIdx]) progress[plan][weekIdx][dayIdx] = {};
+  progress[plan][weekIdx][dayIdx][mealIdx] = val;
+  saveProgress(progress);
+}
+
+function countDayProgress(plan, weekIdx, dayIdx, totalMeals) {
+  let count = 0;
+  for (let i = 0; i < totalMeals; i++) { if (getCompletion(plan, weekIdx, dayIdx, i)) count++; }
+  return count;
+}
+function isDayComplete(plan, weekIdx, dayIdx, totalMeals) { return countDayProgress(plan, weekIdx, dayIdx, totalMeals) === totalMeals; }
+
+function countCompletedDays(plan) {
+  let count = 0;
+  for (let d = 0; d < 7; d++) {
+    const meals = MEALS[plan]?.w1[d]?.meals || [];
+    if (meals.length > 0 && isDayComplete(plan, 0, d, meals.length)) count++;
+  }
+  return count;
+}
+
+function renderPlanGrid() {
+  document.getElementById('plan-grid').innerHTML = Object.entries(PLAN_META).map(([id, m]) => `
+    <div class="plan-card ${state.plan === id ? 'active' : ''}" onclick="selectPlan('${id}')">
+      <div class="icon">${m.emoji}</div>
+      <div class="name">${m.label}</div>
+      <div class="range">${m.range}</div>
+      <div class="range" style="margin-top:6px;font-size:10px;color:var(--amber)">${m.kcalRange}</div>
+    </div>
+  `).join('');
+}
+
+function selectPlan(planId) {
+  state.plan = planId; state.week = 0; state.day = null;
+  renderPlanGrid();
+  document.getElementById('nav-section').classList.remove('hidden');
+  document.getElementById('month-progress-bar').style.display = 'flex';
+  document.getElementById('daily-panel').classList.remove('visible');
+  renderNavSection();
+  updateMonthProgress();
+}
+
+function renderNavSection() {
+  document.getElementById('week-tabs').innerHTML = WEEKS.map((w, i) => `<div class="week-tab ${state.week === i ? 'active' : ''}" onclick="selectWeek(${i})">${w}</div>`).join('');
+  renderDayRow();
+}
+
+function selectWeek(weekIdx) { state.week = weekIdx; state.day = null; renderNavSection(); document.getElementById('daily-panel').classList.remove('visible'); }
+
+function renderDayRow() {
+  const row = document.getElementById('day-row');
+  const weekData = MEALS[state.plan]?.w1 || [];
+  row.innerHTML = DAYS.map((day, i) => {
+    const totalMeals = weekData[i]?.meals?.length || 5;
+    const complete = isDayComplete(state.plan, state.week, i, totalMeals);
+    const realDateStr = dayKey(state.week, i);
+    const [, , rd] = realDateStr.split('-').map(Number);
+    const isToday = realDateStr === todayKey();
+    return `
+      <div class="day-btn ${state.day === i ? 'active' : ''} ${complete ? 'completed-day' : ''} ${isToday ? 'today-btn' : ''}" onclick="selectDay(${i})" title="${realDateStr}">
+        <div class="day-name">${day.substring(0,3)}</div>
+        <div class="day-num">${rd}</div>
+        <div class="day-dot"></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectDay(dayIdx) {
+  state.day = dayIdx;
+  renderNavSection(); renderDailyPanel();
+  document.getElementById('daily-panel').classList.add('visible');
+}
+
+function renderDailyPanel() {
+  const dayData = MEALS[state.plan]?.w1?.[state.day];
+  if (!dayData) return;
+  document.getElementById('daily-title').textContent = `${DAYS[state.day]} — Semana ${state.week + 1}`;
+  
+  if (dayData.macros) {
+    document.getElementById('daily-macros').innerHTML = `
+      <div class="macro-pill">🔥 <span>${dayData.totalKcal}</span> kcal</div>
+      <div class="macro-pill">💪 P: <span>${dayData.macros.p}g</span></div>
+      <div class="macro-pill">⚡ C: <span>${dayData.macros.c}g</span></div>
+      <div class="macro-pill">🫒 G: <span>${dayData.macros.g}g</span></div>
+    `;
+  }
+
+  const completed = countDayProgress(state.plan, state.week, state.day, dayData.meals.length);
+  document.getElementById('day-progress-fill').style.width = Math.round((completed / dayData.meals.length) * 100) + '%';
+  document.getElementById('day-tip-text').textContent = dayData.tip;
+  document.getElementById('day-tip-card').classList.remove('hidden');
+
+  const mealTypeConfig = {
+    'Desayuno': { bgClass: 't-desayuno', tagClass: 'tag-desayuno', icon: '🌅' },
+    'Snack AM': { bgClass: 't-snack', tagClass: 'tag-snack', icon: '🍎' },
+    'Almuerzo': { bgClass: 't-almuerzo', tagClass: 'tag-almuerzo', icon: '☀️' },
+    'Snack PM': { bgClass: 't-snack', tagClass: 'tag-snack', icon: '🌿' },
+    'Cena': { bgClass: 't-cena', tagClass: 'tag-cena', icon: '🌙' }
+  };
+
+  document.getElementById('meals-list').innerHTML = dayData.meals.map((meal, i) => {
+    const cfg = mealTypeConfig[meal.type] || { bgClass: 't-snack', tagClass: 'tag-snack', icon: '🍽️' };
+    const done = getCompletion(state.plan, state.week, state.day, i);
+    const mTotal = dayData.macros ? (dayData.macros.p + dayData.macros.c + dayData.macros.g) : 1;
+    const protPct = Math.round((meal.protein / (meal.protein + meal.carbs + meal.fat)) * 100) || 30;
+    const carbPct = Math.round((meal.carbs / (meal.protein + meal.carbs + meal.fat)) * 100) || 40;
+    const fatPct = Math.round((meal.fat / (meal.protein + meal.carbs + meal.fat)) * 100) || 30;
+
+    return `
+      <div class="meal-card ${done ? 'done' : ''}" id="meal-card-${i}">
+        <div class="meal-head" onclick="toggleMealExpand(${i})">
+          <div class="meal-time-icon ${cfg.bgClass}">${cfg.icon}</div>
+          <div class="meal-meta">
+            <div class="meal-type-row">
+              <span class="meal-type-tag ${cfg.tagClass}">${meal.type}</span>
+              <span class="meal-cal">${meal.cal}</span>
+            </div>
+            <div class="meal-name">${meal.name}</div>
+            <div class="meal-desc">${meal.desc}</div>
+          </div>
+          <div class="meal-check-wrap" onclick="event.stopPropagation()">
+            <input type="checkbox" class="meal-check" id="chk-${i}" ${done ? 'checked' : ''} onchange="toggleMealDone(${i}, this)">
+            <label for="chk-${i}" class="meal-check-label">Hecho</label>
+          </div>
+          <div class="chevron">▼</div>
+        </div>
+        <div class="recipe-detail" id="recipe-${i}">
+          <div class="recipe-tabs">
+            <div class="recipe-tab active" id="tab-nutr-${i}" onclick="switchRecipeTab(${i},'nutr')">📊 Nutrición</div>
+            <div class="recipe-tab" id="tab-ing-${i}" onclick="switchRecipeTab(${i},'ing')">🛒 Ingredientes</div>
+            <div class="recipe-tab" id="tab-prep-${i}" onclick="switchRecipeTab(${i},'prep')">👨‍🍳 Preparación</div>
+          </div>
+          <div class="recipe-pane active" id="pane-nutr-${i}">
+            <div class="macros-grid">
+              <div class="macro-box"><div class="macro-val">${meal.cal.replace(' kcal','')}</div><div class="macro-lbl">Calorías</div></div>
+              <div class="macro-box"><div class="macro-val">${meal.protein}g</div><div class="macro-lbl">Proteínas</div></div>
+              <div class="macro-box"><div class="macro-val">${meal.carbs}g</div><div class="macro-lbl">Carbohidratos</div></div>
+              <div class="macro-box" style="grid-column:1"><div class="macro-val">${meal.fat}g</div><div class="macro-lbl">Grasas</div></div>
+            </div>
+            <div class="macro-bar-section">
+              <div class="mbar-row"><div class="mbar-labels"><span class="mbar-name">Proteínas</span><span class="mbar-pct">${protPct}%</span></div><div class="mbar"><div class="mbar-fill bar-prot" style="width:${protPct}%"></div></div></div>
+              <div class="mbar-row"><div class="mbar-labels"><span class="mbar-name">Carbohidratos</span><span class="mbar-pct">${carbPct}%</span></div><div class="mbar"><div class="mbar-fill bar-carb" style="width:${carbPct}%"></div></div></div>
+              <div class="mbar-row"><div class="mbar-labels"><span class="mbar-name">Grasas</span><span class="mbar-pct">${fatPct}%</span></div><div class="mbar"><div class="mbar-fill bar-gras" style="width:${fatPct}%"></div></div></div>
+            </div>
+            ${meal.benefits ? `<div class="benefits-list">${meal.benefits.map(b => `<div class="benefit-item"><span class="benefit-icon">✓</span>${b}</div>`).join('')}</div>` : ''}
+          </div>
+          <div class="recipe-pane" id="pane-ing-${i}">
+            <div class="time-diff-row">
+              <div class="info-chip"><div class="ic-icon">⏱️</div><div class="ic-label">Tiempo</div><div class="ic-value">${meal.time}</div></div>
+              <div class="info-chip"><div class="ic-icon">⚡</div><div class="ic-label">Dificultad</div><div class="ic-value">${meal.diff}</div></div>
+            </div>
+            <div class="ingredients-list">${meal.ingredients.map(ing => `<div class="ing-item"><div class="ing-dot"></div>${ing}</div>`).join('')}</div>
+          </div>
+          <div class="recipe-pane" id="pane-prep-${i}">
+            <div class="steps-list">${meal.steps.map((step, si) => `<div class="step-item"><div class="step-num">${si + 1}</div><div class="step-content"><div class="step-title">${step.t}</div><div class="step-body">${step.b}</div></div></div>`).join('')}</div>
+            ${meal.tip ? `<div class="tip-box"><div class="tip-icon">🔬</div><div class="tip-text"><strong>Calidad e Inocuidad:</strong> ${meal.tip}</div></div>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleMealExpand(i) {
+  const card = document.getElementById(`meal-card-${i}`);
+  const detail = document.getElementById(`recipe-${i}`);
+  const isExpanded = card.classList.contains('expanded');
+  document.querySelectorAll('.meal-card').forEach(c => c.classList.remove('expanded'));
+  document.querySelectorAll('.recipe-detail').forEach(d => d.classList.remove('open'));
+  if (!isExpanded) { card.classList.add('expanded'); detail.classList.add('open'); }
+}
+
+function switchRecipeTab(mealIdx, tab) {
+  ['nutr','ing','prep'].forEach(t => {
+    document.getElementById(`tab-${t}-${mealIdx}`)?.classList.toggle('active', t === tab);
+    document.getElementById(`pane-${t}-${mealIdx}`)?.classList.toggle('active', t === tab);
+  });
+}
+
+function toggleMealDone(mealIdx, checkbox) {
+  setCompletion(state.plan, state.week, state.day, mealIdx, checkbox.checked);
+  document.getElementById(`meal-card-${mealIdx}`).classList.toggle('done', checkbox.checked);
+  
+  const meals = MEALS[state.plan].w1[state.day].meals;
+  const completed = countDayProgress(state.plan, state.week, state.day, meals.length);
+  logMealCompletion(PAGE_ID, completed, meals.length);
+  const pct = Math.round((completed / meals.length) * 100);
+  document.getElementById('day-progress-fill').style.width = pct + '%';
+  
+  updateMonthProgress(); renderDayRow();
+  if (pct === 100) setTimeout(() => document.getElementById('modal').classList.add('open'), 400);
+}
+
+function updateMonthProgress() {
+  const completed = countCompletedDays(state.plan);
+  document.getElementById('month-bar-fill').style.width = Math.round((completed/28)*100) + '%';
+  document.getElementById('month-stat-text').textContent = `${completed} / 28 días completados`;
+  document.getElementById('month-label-text').textContent = `${PLAN_META[state.plan].label} — Plan Mensual Sin Mariscos`;
+  document.getElementById('month-detail-text').textContent = `${PLAN_META[state.plan].icon} • ${PLAN_META[state.plan].kcalRange}`;
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+document.addEventListener('DOMContentLoaded', () => { renderPlanGrid(); });
+</script>
+</body>
+</html>
